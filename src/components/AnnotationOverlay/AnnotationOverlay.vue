@@ -1766,35 +1766,8 @@ onUnmounted(() => {
 
 /** 滑块样式 */
 .anno-style-row input[type="range"] {
-    -webkit-appearance: none;
-    appearance: none;
-    height: 4px;
-    background: #e2e8f0;
-    border-radius: 2px;
-    outline: none;
     flex: 1;
     min-width: 80px;
-    cursor: pointer;
-}
-
-.anno-style-row input[type="range"]::-webkit-slider-thumb {
-    -webkit-appearance: none;
-    appearance: none;
-    width: 16px;
-    height: 16px;
-    border-radius: 50%;
-    background: #4f6bff;
-    /* 这里设置为你的主题色，与截图中的蓝色滑块保持一致 */
-    cursor: pointer;
-    transition: background 0.2s;
-}
-
-.anno-style-row input[type="range"]::-moz-range-thumb {
-    width: 16px;
-    height: 16px;
-    border-radius: 50%;
-    border: none;
-    background: #4f6bff;
     cursor: pointer;
 }
 
@@ -1870,12 +1843,15 @@ onUnmounted(() => {
 
 /** 操作按钮（取消/确认） */
 .anno-btn {
+    width: 60px;
+    height: 28px;
+    line-height: 14px;
     padding: 6px 14px;
     border-radius: 6px;
     border: 1px solid #ddd;
     background: #fff;
     cursor: pointer;
-    font-size: 13px;
+    font-size: 14px;
     color: #000;
 }
 
