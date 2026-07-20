@@ -1,6 +1,6 @@
 {
   "name": "@laoliangfe/annotation-overlay",
-  "version": "1.1.4",
+  "version": "1.1.5",
   "description": "基于 Fabric.js 的 Vue3 网页/图片标注组件，支持画笔、折线、箭头、矩形、椭圆、文字标注，撤销重做，导出 base64/Blob",
   "type": "module",
   "main": "./dist/index.umd.cjs",
