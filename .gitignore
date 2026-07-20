@@ -8,9 +8,6 @@ pnpm-debug.log*
 
 # Dependencies
 node_modules
-package-lock.json
-yarn.lock
-pnpm-lock.yaml
 
 # Build outputs
 dist
