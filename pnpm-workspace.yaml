@@ -1,3 +1,5 @@
 allowBuilds:
   canvas: false
   esbuild: true
+minimumReleaseAgeExclude:
+  - '@laoliangfe/annotation-overlay@1.1.5'
