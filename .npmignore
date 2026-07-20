@@ -1,0 +1,32 @@
+# Source files
+src/
+*.vue
+*.ts
+!*.d.ts
+
+# Development files
+.git/
+.github/
+.gitignore
+.vscode/
+.idea/
+
+# Config files
+tsconfig.json
+vite.config.ts
+
+# Test files
+test/
+__tests__/
+*.test.ts
+*.spec.ts
+
+# Documentation
+CHANGELOG.md
+
+# OS files
+.DS_Store
+Thumbs.db
+
+# Logs
+*.log

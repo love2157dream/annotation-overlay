@@ -1,0 +1,78 @@
+{
+  "name": "@laoliangfe/annotation-overlay",
+  "version": "0.1.0",
+  "description": "基于 Fabric.js 的 Vue3 网页/图片标注组件，支持画笔、折线、箭头、矩形、椭圆、文字标注，撤销重做，导出 base64/Blob",
+  "type": "module",
+  "main": "./dist/index.umd.cjs",
+  "module": "./dist/index.es.js",
+  "types": "./dist/index.d.ts",
+  "exports": {
+    ".": {
+      "import": "./dist/index.es.js",
+      "require": "./dist/index.umd.js",
+      "types": "./dist/index.d.ts"
+    },
+    "./style.css": "./dist/style.css"
+  },
+  "files": [
+    "dist",
+    "README.md",
+    "LICENSE",
+    "CHANGELOG.md"
+  ],
+  "sideEffects": [
+    "**/*.css"
+  ],
+  "scripts": {
+    "dev": "vite",
+    "build": "vue-tsc --noEmit && vite build",
+    "prepublishOnly": "npm run build"
+  },
+  "peerDependencies": {
+    "vue": "^3.5.39"
+  },
+  "dependencies": {
+    "@zumer/snapdom": "^2.16.0",
+    "fabric": "^7.4.0"
+  },
+  "devDependencies": {
+    "@types/node": "^24.13.2",
+    "@vitejs/plugin-vue": "^6.0.7",
+    "@vue/tsconfig": "^0.9.1",
+    "esbuild": "^0.28.1",
+    "typescript": "~6.0.2",
+    "vite": "^8.1.1",
+    "vite-plugin-dts": "^5.0.3",
+    "vue-tsc": "^3.3.5"
+  },
+  "keywords": [
+    "vue3",
+    "vue",
+    "fabricjs",
+    "annotation",
+    "screenshot",
+    "markup",
+    "canvas",
+    "overlay",
+    "drawing",
+    "markup",
+    "annotation-tool"
+  ],
+  "license": "MIT",
+  "author": {
+    "name": "lianglei",
+    "email": "love2157dream@aliyun.com",
+    "url": "https://github.com/love2157dream"
+  },
+  "homepage": "https://github.com/love2157dream/annotation-overlay#readme",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/love2157dream/annotation-overlay.git"
+  },
+  "bugs": {
+    "url": "https://github.com/love2157dream/annotation-overlay/issues"
+  },
+  "publishConfig": {
+    "access": "public"
+  }
+}
