@@ -1,6 +1,28 @@
 ```markdown
 # Changelog
 
+## [1.1.1] - 2026-07-20
+
+### Fixed
+- 修复取消按钮的默认字体颜色
+- 修复input 滑块的默认样式
+
+## [1.1.0] - 2026-07-15
+
+### Added
+- 添加 snapdom 支持，提升截图速度
+- 添加 beforeCapture/afterCapture 事件
+- 添加 isRestoring 保护，防止 undo/redo 竞态
+
+### Changed
+- 优化性能
+- 统一控制手柄配置
+- 改进历史记录管理
+
+### Fixed
+- 修复工具栏位置偏移问题
+- 修复文字编辑保存状态问题
+
 ## [1.0.0] - 2026-07-14
 
 ### Added
@@ -18,18 +40,3 @@
 - 折线绘制连续点击
 - 控制手柄方向正确显示
 
-## [1.0.0-rc.1] - 2026-07-15
-
-### Added
-- 添加 snapdom 支持，提升截图速度
-- 添加 beforeCapture/afterCapture 事件
-- 添加 isRestoring 保护，防止 undo/redo 竞态
-
-### Changed
-- 优化性能
-- 统一控制手柄配置
-- 改进历史记录管理
-
-### Fixed
-- 修复工具栏位置偏移问题
-- 修复文字编辑保存状态问题
