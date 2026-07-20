@@ -1,0 +1,490 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>📝 标注组件演示 - Annotation Overlay</title>
+    <style>
+        /* ============ 全局重置 & 基础样式 ============ */
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background: #f1f5f9;
+            min-height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            padding: 20px;
+        }
+
+        /* ============ 卡片容器 ============ */
+        .demo-container {
+            width: 100%;
+            max-width: 900px;
+            background: #ffffff;
+            border-radius: 20px;
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.12);
+            overflow: hidden;
+            position: relative;
+        }
+
+        /* ============ 头部 ============ */
+        .demo-header {
+            padding: 24px 32px;
+            background: linear-gradient(135deg, #f8fafc 0%, #ffffff 100%);
+            border-bottom: 1px solid #e9edf2;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            flex-wrap: wrap;
+            gap: 12px;
+        }
+
+        .demo-header h1 {
+            font-size: 22px;
+            font-weight: 700;
+            color: #0f172a;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .demo-header h1 span {
+            background: #4f6bff;
+            color: white;
+            font-size: 12px;
+            font-weight: 600;
+            padding: 2px 10px;
+            border-radius: 20px;
+        }
+
+        .demo-header-actions {
+            display: flex;
+            gap: 10px;
+            flex-wrap: wrap;
+        }
+
+        .btn {
+            padding: 8px 18px;
+            border: none;
+            border-radius: 8px;
+            font-size: 14px;
+            font-weight: 500;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+        }
+
+        .btn-primary {
+            background: #4f6bff;
+            color: white;
+            box-shadow: 0 4px 12px rgba(79, 107, 255, 0.3);
+        }
+
+        .btn-primary:hover {
+            background: #3b5bff;
+            transform: translateY(-2px);
+            box-shadow: 0 6px 20px rgba(79, 107, 255, 0.4);
+        }
+
+        .btn-secondary {
+            background: #f1f5f9;
+            color: #334155;
+        }
+
+        .btn-secondary:hover {
+            background: #e2e8f0;
+        }
+
+        .btn-success {
+            background: #22c55e;
+            color: white;
+        }
+
+        .btn-success:hover {
+            background: #16a34a;
+        }
+
+        .btn-danger {
+            background: #ef4444;
+            color: white;
+        }
+
+        .btn-danger:hover {
+            background: #dc2626;
+        }
+
+        /* ============ 目标区域（截图内容） ============ */
+        .target-area {
+            padding: 40px 32px 32px;
+            min-height: 380px;
+            background: #ffffff;
+            transition: background 0.3s;
+            position: relative;
+        }
+
+        .target-area .content-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 16px;
+            margin-top: 20px;
+        }
+
+        .target-area .content-card {
+            background: #f8fafc;
+            padding: 24px 20px;
+            border-radius: 12px;
+            border: 2px solid #e9edf2;
+            text-align: center;
+            transition: all 0.2s ease;
+            cursor: default;
+        }
+
+        .target-area .content-card:hover {
+            border-color: #4f6bff;
+            background: #f0f4ff;
+        }
+
+        .target-area .content-card .icon {
+            font-size: 32px;
+            margin-bottom: 8px;
+        }
+
+        .target-area .content-card .label {
+            font-size: 14px;
+            font-weight: 500;
+            color: #0f172a;
+        }
+
+        .target-area .content-card .desc {
+            font-size: 12px;
+            color: #94a3b8;
+            margin-top: 4px;
+        }
+
+        .target-area .feature-badge {
+            display: inline-block;
+            background: #eef2ff;
+            color: #4f6bff;
+            font-size: 12px;
+            font-weight: 500;
+            padding: 4px 12px;
+            border-radius: 20px;
+        }
+
+        .target-area .title-section {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            flex-wrap: wrap;
+            gap: 12px;
+            margin-bottom: 16px;
+        }
+
+        .target-area .title-section h2 {
+            font-size: 20px;
+            font-weight: 600;
+            color: #0f172a;
+        }
+
+        .target-area .title-section .badge {
+            font-size: 13px;
+            color: #64748b;
+            background: #f1f5f9;
+            padding: 4px 14px;
+            border-radius: 20px;
+        }
+
+        /* ============ 状态提示 ============ */
+        .status-bar {
+            padding: 12px 32px;
+            background: #f8fafc;
+            border-top: 1px solid #e9edf2;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            flex-wrap: wrap;
+            gap: 8px;
+            font-size: 14px;
+            color: #475569;
+        }
+
+        .status-bar .status-dot {
+            display: inline-block;
+            width: 8px;
+            height: 8px;
+            border-radius: 50%;
+            margin-right: 8px;
+        }
+
+        .status-bar .status-dot.idle {
+            background: #94a3b8;
+        }
+
+        .status-bar .status-dot.active {
+            background: #22c55e;
+            animation: pulse 1.5s infinite;
+        }
+
+        @keyframes pulse {
+
+            0%,
+            100% {
+                opacity: 1;
+                transform: scale(1);
+            }
+
+            50% {
+                opacity: 0.6;
+                transform: scale(1.2);
+            }
+        }
+
+        /* ============ 响应式 ============ */
+        @media (max-width: 600px) {
+            .demo-header {
+                flex-direction: column;
+                align-items: stretch;
+                gap: 12px;
+                padding: 16px 20px;
+            }
+
+            .demo-header-actions {
+                justify-content: stretch;
+            }
+
+            .demo-header-actions .btn {
+                flex: 1;
+                justify-content: center;
+            }
+
+            .target-area {
+                padding: 20px 16px;
+            }
+
+            .target-area .content-grid {
+                grid-template-columns: 1fr 1fr;
+            }
+
+            .status-bar {
+                flex-direction: column;
+                text-align: center;
+                padding: 12px 16px;
+            }
+        }
+    </style>
+</head>
+
+<body>
+
+    <div class="demo-container" id="app">
+        <!-- 头部 -->
+        <div class="demo-header">
+            <h1>
+                📝 标注组件
+                <span>v1.0.0</span>
+            </h1>
+            <div class="demo-header-actions">
+                <button class="btn btn-primary" id="openAnnotationBtn">✏️ 添加标注</button>
+                <button class="btn btn-secondary" id="resetBtn">🔄 重置</button>
+            </div>
+        </div>
+
+        <!-- 目标区域（将被截图） -->
+        <div class="target-area" id="targetArea">
+            <div class="title-section">
+                <h2>📊 数据看板</h2>
+                <span class="badge">🟢 实时数据</span>
+            </div>
+
+            <p style="color: #64748b; font-size: 15px; line-height: 1.6; margin-bottom: 16px;">
+                这是一个用于演示标注组件的测试界面。点击右上角「<strong>添加标注</strong>」按钮，
+                即可对当前区域进行截图和标注。
+            </p>
+
+            <div class="content-grid">
+                <div class="content-card">
+                    <div class="icon">📈</div>
+                    <div class="label">总销售额</div>
+                    <div class="desc">¥128,430</div>
+                </div>
+                <div class="content-card">
+                    <div class="icon">👥</div>
+                    <div class="label">用户数</div>
+                    <div class="desc">3,847 人</div>
+                </div>
+                <div class="content-card">
+                    <div class="icon">🛒</div>
+                    <div class="label">订单量</div>
+                    <div class="desc">1,203 单</div>
+                </div>
+                <div class="content-card">
+                    <div class="icon">⭐</div>
+                    <div class="label">好评率</div>
+                    <div class="desc">98.6%</div>
+                </div>
+            </div>
+
+            <div style="margin-top: 20px; display: flex; gap: 16px; flex-wrap: wrap;">
+                <span class="feature-badge">✅ 支持画笔</span>
+                <span class="feature-badge">📐 支持矩形/椭圆</span>
+                <span class="feature-badge">✏️ 支持文字</span>
+                <span class="feature-badge">↩️ 支持撤销/重做</span>
+            </div>
+        </div>
+
+        <!-- 状态栏 -->
+        <div class="status-bar">
+            <span>
+                <span class="status-dot idle" id="statusDot"></span>
+                <span id="statusText">就绪 — 点击「添加标注」开始</span>
+            </span>
+            <span id="versionInfo">📦 @laoliangfe/annotation-overlay</span>
+        </div>
+    </div>
+
+    <!-- ============================================================ -->
+    <!-- 使用 ES Module 加载组件 -->
+    <!-- ============================================================ -->
+    <script type="importmap">
+    {
+      "imports": {
+        "@laoliangfe/annotation-overlay": "https://unpkg.com/@laoliangfe/annotation-overlay@1.1.5/dist/index.es.js",
+        "@laoliangfe/annotation-overlay/style.css": "https://unpkg.com/@laoliangfe/annotation-overlay@1.1.5/dist/style.css"
+      }
+    }
+  </script>
+
+    <script type="module">
+        // ============================================================
+        // 1. 导入组件
+        // ============================================================
+        import AnnotationOverlay from '@laoliangfe/annotation-overlay';
+        // 注：样式已通过 importmap 中的 style.css 导入
+        // 但需要动态加载 CSS
+        const styleLink = document.createElement('link');
+        styleLink.rel = 'stylesheet';
+        styleLink.href = 'https://unpkg.com/@laoliangfe/annotation-overlay@1.1.5/dist/style.css';
+        document.head.appendChild(styleLink);
+
+        // ============================================================
+        // 2. 获取 DOM 元素
+        // ============================================================
+        const targetArea = document.getElementById('targetArea');
+        const openBtn = document.getElementById('openAnnotationBtn');
+        const resetBtn = document.getElementById('resetBtn');
+        const statusDot = document.getElementById('statusDot');
+        const statusText = document.getElementById('statusText');
+
+        // ============================================================
+        // 3. 创建组件实例
+        // ============================================================
+        const overlay = new AnnotationOverlay();
+
+        // ============================================================
+        // 4. 状态管理
+        // ============================================================
+        const state = {
+            isOpen: false,
+        };
+
+        function setStatus(active, message) {
+            statusDot.className = `status-dot ${active ? 'active' : 'idle'}`;
+            statusText.textContent = message;
+        }
+
+        // ============================================================
+        // 5. 更新状态提示
+        // ============================================================
+        function updateStatus(active, message) {
+            setStatus(active, message);
+        }
+
+        // ============================================================
+        // 6. 打开标注
+        // ============================================================
+        async function openAnnotation() {
+            if (state.isOpen) {
+                overlay.close();
+                state.isOpen = false;
+                openBtn.textContent = '✏️ 添加标注';
+                updateStatus(false, '已关闭标注');
+                return;
+            }
+
+            try {
+                updateStatus(true, '⏳ 正在准备截图...');
+                await overlay.open(targetArea);
+                state.isOpen = true;
+                openBtn.textContent = '❌ 关闭标注';
+                updateStatus(true, '✏️ 标注模式已开启 — 使用工具栏绘制');
+            } catch (error) {
+                console.error('打开标注失败:', error);
+                updateStatus(false, '❌ 打开失败，请查看控制台');
+            }
+        }
+
+        // ============================================================
+        // 7. 重置
+        // ============================================================
+        function resetDemo() {
+            if (state.isOpen) {
+                overlay.close();
+                state.isOpen = false;
+                openBtn.textContent = '✏️ 添加标注';
+            }
+            // 重置目标区域样式（如有需要）
+            targetArea.style.outline = 'none';
+            updateStatus(false, '🔄 已重置');
+            setTimeout(() => {
+                updateStatus(false, '就绪 — 点击「添加标注」开始');
+            }, 1000);
+        }
+
+        // ============================================================
+        // 8. 事件监听
+        // ============================================================
+        openBtn.addEventListener('click', openAnnotation);
+        resetBtn.addEventListener('click', resetDemo);
+
+        // ============================================================
+        // 9. 键盘快捷键
+        // ============================================================
+        document.addEventListener('keydown', (e) => {
+            // Ctrl+Shift+A 打开/关闭标注
+            if ((e.ctrlKey || e.metaKey) && e.shiftKey && (e.key === 'a' || e.key === 'A')) {
+                e.preventDefault();
+                openAnnotation();
+            }
+            // ESC 关闭标注（由组件内部处理）
+        });
+
+        // ============================================================
+        // 10. 初始化状态
+        // ============================================================
+        updateStatus(false, '就绪 — 点击「添加标注」开始');
+        console.log('📝 标注组件演示已加载');
+        console.log('⌨️  快捷键: Ctrl+Shift+A 切换标注模式');
+        console.log('📦 包名: @laoliangfe/annotation-overlay');
+
+        // ============================================================
+        // 11. 暴露到全局（调试用）
+        // ============================================================
+        window.__demo = {
+            overlay,
+            openAnnotation,
+            resetDemo,
+            targetArea,
+        };
+    </script>
+</body>
+
+</html>
