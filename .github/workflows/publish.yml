@@ -22,7 +22,7 @@ jobs:
         uses: pnpm/action-setup@v6
         with:
           version: 10
-          cache: true
+          run_install: false
 
       # 2. 设置 Node.js 环境，并自动安装/启用 pnpm
       - name: Setup Node.js 
