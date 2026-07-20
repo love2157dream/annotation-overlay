@@ -6,6 +6,8 @@ on:
   push:
     tags:
       - 'v*'
+    branches:
+      - master
 
 jobs:
   build-and-publish:
@@ -14,16 +16,20 @@ jobs:
     steps:
       # 1. 检出代码
       - name: Checkout code
-        uses: actions/checkout@v4
+        uses: actions/checkout@v6
+
+      - name: Install pnpm
+        uses: pnpm/action-setup@v6
+        with:
+          version: 10
+          cache: true
 
       # 2. 设置 Node.js 环境，并自动安装/启用 pnpm
-      - name: Setup Node.js and pnpm
-        uses: actions/setup-node@v4
+      - name: Setup Node.js 
+        uses: actions/setup-node@v6
         with:
-          node-version: '20'
+          node-version: 24
           registry-url: 'https://registry.npmjs.org'
-          # 关键：通过 cache: 'pnpm' 告诉 setup-node 使用 pnpm，
-          # 它会自动安装 pnpm 并将其添加到 PATH，同时设置缓存
           cache: 'pnpm'
 
       # 3. 安装依赖（现在 pnpm 命令可用了）
