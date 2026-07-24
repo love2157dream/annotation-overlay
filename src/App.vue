@@ -2,13 +2,17 @@
     <div class="app-container">
         <!-- 页面内容 -->
         <div class="content-area" ref="targetRef">
-            <h1>📝 组件本地测试</h1>
+            <h1>📝 组件测试</h1>
             <p>这是需要标注的内容区域</p>
             <div class="card-grid">
                 <div v-for="i in 4" :key="i" class="card">
                     卡片 {{ i }}
                 </div>
             </div>
+        </div>
+        <div class="content-area">
+            <h1>标注预览</h1>
+            <img :src="previewImg" alt=""></img>
         </div>
 
         <!-- 本地导入组件 -->
@@ -33,6 +37,7 @@ import type { ConfirmPayload } from './components/AnnotationOverlay/types'
 
 const annoRef = ref()
 const targetRef = ref<HTMLElement>()
+const previewImg = ref('')
 
 const openAnnotation = () => {
     if (targetRef.value) {
@@ -45,6 +50,7 @@ const handleConfirm = (payload: ConfirmPayload | null) => {
         console.log('⚠️ 未进行任何标注')
         return
     }
+    previewImg.value = payload.base64
     console.log('✅ 标注确认:', payload)
 }
 
@@ -64,20 +70,43 @@ const handleAfterCapture = (targetEl: HTMLElement) => {
 }
 </script>
 
-<style scoped>
+<style>
+body,
+#app {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100vw;
+    height: 100vh;
+    padding: 0;
+    margin: 0;
+}
+
 .app-container {
-    max-width: 800px;
-    margin: 40px auto;
+    max-width: 100%;
+    max-height: 100%;
     padding: 20px;
     position: relative;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: space-evenly;
+    height: 100%;
+    box-sizing: border-box
 }
 
 .content-area {
+    width: 100%;
     padding: 24px;
     background: #f8fafc;
     border-radius: 12px;
     border: 2px dashed #e2e8f0;
-    min-height: 400px;
+    min-height: 500px;
+    box-sizing: border-box;
+}
+
+.content-area img {
+    width: 90%;
 }
 
 .card-grid {

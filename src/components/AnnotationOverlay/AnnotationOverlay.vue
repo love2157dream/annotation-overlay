@@ -51,14 +51,17 @@
                     <div class="anno-style-row">
                         <span class="anno-label">{{ isTextTool ? '大小' : '粗细' }}</span>
                         <input type="range" :min="isTextTool ? 8 : 1" :max="isTextTool ? 72 : 20"
-                            v-model.number="sizeOrWidth" @input="applyStyle" />
+                            v-model.number="sizeOrWidth" @input="applyStyle" @change="commitStyleHistory" />
                         <span class="anno-value">{{ sizeOrWidth }}{{ isTextTool ? 'px' : 'px' }}</span>
                     </div>
                     <div class="anno-style-row">
                         <span class="anno-label">颜色</span>
                         <div class="anno-color-list">
-                            <span v-for="c in colors" :key="c" class="anno-swatch" :class="{ active: color === c }"
-                                :style="{ background: c }" @click="setColor(c)"></span>
+                            <span v-for="c in colors" :key="c" class="anno-swatch" :title="c"
+                                :class="{ active: color === c }" :style="{ background: c }" @click="setColor(c)"></span>
+                            <!-- 自定义颜色选择器 -->
+                            <input type="color" :value="color" @input="handleCustomColor($event)"
+                                class="anno-color-picker" title="自定义颜色" />
                         </div>
                     </div>
                 </div>
@@ -410,9 +413,11 @@ const sizeOrWidth = computed({
     }
 })
 
-/** 是否显示样式面板（只有支持样式调节的工具才显示） */
+/** 是否显示样式面板（有绘制工具激活 或 当前选中了一个可设置样式的对象 时都要显示） */
+const activeObjectType = ref<string | null>(null);
 const showStylePanel = computed(() =>
     (['pen', 'line', 'arrow', 'rect', 'ellipse', 'text'] as ToolId[]).includes(currentTool.value)
+    || activeObjectType.value !== null
 )
 
 
@@ -523,6 +528,60 @@ function updatePanelPosition(id: ToolId): void {
     if (btn) {
         panelLeft.value = btn.offsetLeft;
     }
+}
+
+/** Fabric 对象的 type 到工具按钮 id 的映射，用于重新选中对象时让样式面板对齐到对应图标下方 */
+const objectTypeToToolId: Partial<Record<string, ToolId>> = {
+    rect: 'rect',
+    ellipse: 'ellipse',
+    group: 'arrow',
+    polyline: 'line',
+    path: 'pen',
+    'i-text': 'text',
+};
+
+/**
+ * 从"重新选中的对象"读取它当前真实的颜色/粗细(或字号)，同步回 color / lineWidth / fontSize，
+ * 并把样式面板的位置对齐到对应工具图标。
+ *
+ * @param obj - 新选中的 Fabric 对象
+ */
+async function syncPanelFromObject(obj: fabric.FabricObject): Promise<void> {
+    activeObjectType.value = obj.type ?? null;
+
+    // 根据对象类型映射到对应的工具 ID，并更新 currentTool
+    const mappedTool = (obj.type && objectTypeToToolId[obj.type]) || currentTool.value;
+    if (mappedTool && mappedTool !== currentTool.value) {
+        currentTool.value = mappedTool;
+    }
+    // 选中已有对象时，应该进入选择/查看模式，而非绘制模式
+    if (fCanvas) {
+        fCanvas.isDrawingMode = false;  // 关闭画笔绘制模式
+        fCanvas.selection = true;        // 允许框选
+    }
+
+    if (obj.type === 'i-text') {
+        const textObj = obj as fabric.IText;
+        fontSize.value = textObj.fontSize || 20;
+        color.value = (textObj.fill as string) || color.value;
+        textObj.cursorColor = color.value;
+    } else if (obj.type === 'group') {
+        // 箭头：颜色/粗细以内部的 Line 子对象为准
+        const group = obj as fabric.Group;
+        const line = group.getObjects().find((c) => c.type === 'line') as fabric.Line | undefined;
+        if (line) {
+            color.value = (line.stroke as string) || color.value;
+            lineWidth.value = line.strokeWidth || lineWidth.value;
+        }
+    } else {
+        // 矩形 / 椭圆 / 折线 / 画笔轨迹
+        const shape = obj as fabric.FabricObject & { stroke?: string; strokeWidth?: number };
+        if (shape.stroke) color.value = shape.stroke as string;
+        if (typeof shape.strokeWidth === 'number') lineWidth.value = shape.strokeWidth;
+    }
+
+    await nextTick();
+    updatePanelPosition(mappedTool);
 }
 
 
@@ -672,6 +731,7 @@ function close(): void {
     isDrawing = false;
     isRestoring.value = false;
     canvasInitialized.value = false;
+    activeObjectType.value = null;
     isCustomPosition.value = false;
     toolbarPosition.value = { x: 0, y: 0 };
     visible.value = false;
@@ -953,26 +1013,95 @@ function handleKeyDown(e: KeyboardEvent): void {
  * ============================================================ */
 
 /**
- * 应用当前样式（粗细/大小 + 颜色）到画笔或选中的文字
+ * 将当前的 颜色 / 粗细(或字号) 应用到"当前选中的对象"上（若存在）。
+ *
+ * 之前的问题：这里只处理了 i-text 一种类型，矩形/椭圆/折线/画笔轨迹/箭头(Group)
+ * 完全没有分支去更新它们的 stroke / strokeWidth，导致选中已画好的对象后，
+ * 拖动粗细滑块或点颜色色块，画面上的对象没有任何变化。
+ *
+ * @returns 是否真的应用到了某个选中对象（用于决定是否需要写入历史记录）
+ */
+function applyStyleToActiveObject(): boolean {
+    if (!fCanvas) return false;
+    const activeObj = fCanvas.getActiveObject();
+    if (!activeObj) return false;
+
+    if (activeObj.type === 'i-text') {
+        // 文字：字号 + 填充色
+        const textObj = activeObj as fabric.IText;
+        textObj.set({
+            fontSize: fontSize.value,
+            fill: color.value,
+        });
+        textObj.cursorColor = color.value;
+    } else if (activeObj.type === 'group') {
+        // 箭头是 Group([Line, Triangle])：线身走 stroke，箭头三角走 fill + 尺寸
+        // 关键修复：之前只改了三角形的 fill，没有跟着 lineWidth 改 width/height，
+        // 导致调整"粗细"时箭头整体大小看起来毫无变化。
+        // 三角形创建时用 originX/originY: 'center' 锚定在线段终点这个"局部坐标"上，
+        // 只改 width/height 不改 left/top，箭头依然会正确地围绕箭尖对称变大/变小，
+        // 不需要额外做绝对坐标换算。
+        const group = activeObj as fabric.Group;
+        group.getObjects().forEach((child) => {
+            if (child.type === 'line') {
+                child.set({ stroke: color.value, strokeWidth: lineWidth.value });
+            } else if (child.type === 'triangle') {
+                child.set({
+                    fill: color.value,
+                    width: 10 + lineWidth.value * 2,
+                    height: 12 + lineWidth.value * 2,
+                });
+            }
+            child.dirty = true;
+        });
+        // Group 自身也可能启用了对象缓存，子对象变化后需要显式标记，否则可能仍绘制缓存的旧位图
+        (group as any).dirty = true;
+    } else {
+        // 矩形 / 椭圆 / 折线 / 画笔轨迹(path)：统一走 stroke + strokeWidth
+        activeObj.set({
+            stroke: color.value,
+            strokeWidth: lineWidth.value,
+        });
+        activeObj.dirty = true;
+    }
+
+    activeObj.setCoords();
+    fCanvas.requestRenderAll();
+    return true;
+}
+
+/**
+ * 应用当前样式（粗细/大小 + 颜色）
+ * - 更新画笔（用于接下来新画的笔触）
+ * - 更新当前选中的对象（如果有）
+ *
+ * 注意：这个函数会被滑块的 @input 高频调用（用于拖动时的实时预览），
+ * 内部不写历史记录，写历史统一交给 commitStyleHistory（松开滑块 / 点颜色块时调用一次）。
  */
 function applyStyle(): void {
     if (!fCanvas) return;
 
-    // 更新画笔样式
+    // 更新画笔样式（影响接下来新画的画笔轨迹，不影响已有对象）
     if (fCanvas.freeDrawingBrush) {
         fCanvas.freeDrawingBrush.color = color.value;
         fCanvas.freeDrawingBrush.width = lineWidth.value;
     }
 
-    // 如果有选中的文字对象，更新其大小
-    const activeObj = fCanvas.getActiveObject();
+    // 更新当前选中对象的样式（矩形/椭圆/箭头/折线/画笔轨迹/文字）
+    applyStyleToActiveObject();
+}
 
-    if (activeObj && activeObj.type === 'i-text') {
-        const textObj = activeObj as fabric.IText;
-        textObj.set({
-            fontSize: fontSize.value
-        });
-        fCanvas.requestRenderAll();
+/**
+ * 提交一次样式变更到历史记录。
+ * 只有存在"选中对象"时才需要写历史（调整画笔默认值本身不产生可撤销的画布变化）。
+ * 绑定在 range 的 @change（松开滑块才触发一次）和 setColor 点击颜色块之后，
+ * 避免拖动滑块的每一帧 @input 都写一条历史记录把撤销栈撑爆。
+ */
+function commitStyleHistory(): void {
+    if (!fCanvas) return;
+    const activeObj = fCanvas.getActiveObject();
+    if (activeObj) {
+        saveState();
     }
 }
 
@@ -1028,23 +1157,22 @@ async function selectTool(id: ToolId): Promise<void> {
 /**
  * 设置当前颜色
  * @param c - 颜色值（十六进制字符串）
- * 同时更新选中的文字对象颜色
+ * 同时更新选中对象的颜色（任意类型），并在有选中对象时写入一次历史记录
  */
 function setColor(c: string): void {
     color.value = c;
-
-    if (fCanvas) {
-        const activeObj = fCanvas.getActiveObject();
-        if (activeObj && activeObj.type === 'i-text') {
-            const textObj = activeObj as fabric.IText;
-            textObj.set({
-                fill: color.value
-            });
-            fCanvas.requestRenderAll();
-        }
-    }
-
     applyStyle();
+    commitStyleHistory();
+}
+
+/**
+ * 处理自定义颜色选择
+ * @param event - Input 事件
+ */
+function handleCustomColor(event: Event): void {
+    const input = event.target as HTMLInputElement;
+    const newColor = input.value;
+    setColor(newColor);
 }
 
 /* ============================================================
@@ -1321,26 +1449,31 @@ function bindDrawingEvents(): void {
         fCanvas.requestRenderAll();
     })
 
-    /** 选中对象时更新样式面板 */
+    /** 选中对象时：把该对象真实的颜色/粗细同步回样式面板 */
     fCanvas.on('selection:created', (e: any) => {
         const selected = e.selected?.[0];
-        if (selected && selected.type === 'i-text') {
-            const textObj = selected as fabric.IText;
-            fontSize.value = textObj.fontSize || 20;
-            color.value = textObj.fill as string || '#ff3b30';
-            textObj.cursorColor = color.value;
+        if (selected) {
+            syncPanelFromObject(selected);
         }
     })
 
-    /** 选中对象更新时更新样式面板 */
+    /** 选中对象切换/更新时：同上 */
     fCanvas.on('selection:updated', (e: any) => {
         const selected = e.selected?.[0];
-        if (selected && selected.type === 'i-text') {
-            const textObj = selected as fabric.IText;
-            fontSize.value = textObj.fontSize || 20;
-            color.value = textObj.fill as string || '#ff3b30';
-            textObj.cursorColor = color.value;
+        if (selected) {
+            syncPanelFromObject(selected);
         }
+    })
+
+    /**
+     * 取消选中时：清空"当前选中对象类型"标记。
+     * 关键修复：之前样式面板是否显示只看 currentTool，选中一个已画好的对象时
+     * （此时通常没有绘制工具处于激活状态）面板根本不会显示，用户无从调整。
+     * 现在 showStylePanel 同时也看 activeObjectType，所以这里必须在取消选中时
+     * 把它清空，否则没有工具、也没有选中对象时，面板会一直残留显示。
+     */
+    fCanvas.on('selection:cleared', () => {
+        activeObjectType.value = null;
     })
 }
 
@@ -1615,7 +1748,7 @@ function isValidAnnotation(): boolean {
 /**
  * 确认标注：导出截图 + 标注，触发 confirm 事件
  */
-function handleConfirm(): void {
+async function handleConfirm(): Promise<void> {
     // 退出文字编辑（统一走 exitTextEditing，保证历史被保存，
     // 同时也会正确处理空文字被删除的情况）
     if (isTextEditing) {
@@ -1628,7 +1761,12 @@ function handleConfirm(): void {
     }
 
     if (!fCanvas) {
-        emit('confirm', null);
+        const shotCanvas = await snapdom.toCanvas(pendingTargetEl);
+        const screenshotData = shotCanvas.toDataURL('image/png');
+        const blob = await new Promise(resolve => {
+            shotCanvas.toBlob(resolve, 'image/png');
+        });
+        emit('confirm', { base64: screenshotData, blob } as ConfirmPayload);
         close();
         return;
     }
@@ -1875,5 +2013,18 @@ onUnmounted(() => {
 /** 颜色色块激活 */
 .anno-swatch.active {
     border-color: #4f6bff;
+}
+
+/**原生颜色选择器 */
+.anno-color-picker {
+    width: 24px;
+    height: 18px;
+    border: 2px solid #ddd;
+    cursor: pointer;
+    overflow: hidden;
+}
+
+input[type="color" i]::-webkit-color-swatch-wrapper {
+    padding: 0 !important;
 }
 </style>

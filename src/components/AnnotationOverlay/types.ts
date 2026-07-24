@@ -1,7 +1,7 @@
 /**
  * 工具类型
+ * 画笔 | 折线 | 箭头 | 矩形 | 椭圆 | 文字 | 无
  */
-/** 工具类型：画笔 | 折线 | 箭头 | 矩形 | 椭圆 | 文字 | 无 */
 export type ToolId = 'pen' | 'line' | 'arrow' | 'rect' | 'ellipse' | 'text' | ''
 
 /**
