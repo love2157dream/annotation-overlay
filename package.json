@@ -3,7 +3,7 @@
   "version": "1.1.6",
   "description": "基于 Fabric.js 的 Vue3 网页/图片标注组件，支持画笔、折线、箭头、矩形、椭圆、文字标注，撤销重做，导出 base64/Blob",
   "type": "module",
-  "main": "./dist/index.umd.cjs",
+  "main": "./dist/index.umd.js",
   "module": "./dist/index.es.js",
   "types": "./dist/index.d.ts",
   "exports": {
@@ -24,9 +24,14 @@
     "**/*.css"
   ],
   "scripts": {
-    "dev": "vite",
+    "dev": "vite -c vite.dev.config.ts",
     "build": "vue-tsc --noEmit && vite build",
-    "prepublishOnly": "npm run build"
+    "build:docs": "vite build -c vite.dev.config.ts",
+    "build:github": "vite build -c vite.dev.config.ts --mode github",
+    "preview:github": "vite preview -c vite.dev.config.ts --mode github",
+    "preview:docs": "vite preview -c vite.dev.config.ts",
+    "prepublishOnly": "npm run build",
+    "deploy": "npm run build:github && git add docs && git commit -m 'docs: 更新 GitHub Pages 演示' && git push"
   },
   "peerDependencies": {
     "vue": "^3.5.39"

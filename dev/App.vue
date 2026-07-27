@@ -27,13 +27,13 @@
 <script setup lang="ts">
 import { ref } from 'vue'
 // 关键：使用相对路径从源码目录导入组件
-import AnnotationOverlay from './components/AnnotationOverlay/AnnotationOverlay.vue'
+import AnnotationOverlay from '../src/AnnotationOverlay.vue'
 // 组件样式在源码中已通过 <style scoped> 定义，无需额外导入
 
 // 如果组件有 index.ts 入口，也可以这样导入
 // import AnnotationOverlay from './components/AnnotationOverlay'
 
-import type { ConfirmPayload } from './components/AnnotationOverlay/types'
+import type { ConfirmPayload } from '../src/types'
 
 const annoRef = ref()
 const targetRef = ref<HTMLElement>()
@@ -80,6 +80,7 @@ body,
     height: 100vh;
     padding: 0;
     margin: 0;
+    box-sizing: border-box;
 }
 
 .app-container {
@@ -101,7 +102,7 @@ body,
     background: #f8fafc;
     border-radius: 12px;
     border: 2px dashed #e2e8f0;
-    min-height: 500px;
+    min-height: 40%;
     box-sizing: border-box;
 }
 

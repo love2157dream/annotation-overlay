@@ -80,7 +80,7 @@
 import { ref, computed, nextTick, h, type VNode, onUnmounted } from 'vue';
 import * as fabric from 'fabric';
 import { snapdom } from '@zumer/snapdom';
-import { ConfirmPayload, ToolDef, ToolId } from './types';
+import { ConfirmPayload, ToolDef, ToolId } from '@/types';
 
 
 /* ============================================================

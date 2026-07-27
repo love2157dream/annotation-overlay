@@ -8,7 +8,7 @@ export default defineConfig({
     vue(),
     dts({
       include: ['src/**/*.ts', 'src/**/*.vue'],
-      exclude: ['src/**/*.test.ts'],
+      exclude: ['src/**/*.test.ts', 'src/**/*.spec.ts', 'dev/**/*'],
       outDirs: 'dist',
       insertTypesEntry: true, // 生成 dist/index.d.ts
     }),
@@ -17,7 +17,11 @@ export default defineConfig({
     lib: {
       entry: resolve(__dirname, 'src/index.ts'),
       name: 'AnnotationOverlay',
-      fileName: (format) => `index.${format}.js`,
+      fileName:  (format) => {
+        if (format === 'umd') return 'index.umd.js';
+        if (format === 'cjs') return 'index.cjs.js';
+        return `index.${format}.js`;
+      },
       formats: ['es', 'umd', 'cjs'],
     },
     rollupOptions: {
