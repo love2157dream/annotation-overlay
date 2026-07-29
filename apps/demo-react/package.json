@@ -1,0 +1,22 @@
+{
+  "name": "@laoliangfe/annotation-overlay-demo-react",
+  "private": true,
+  "version": "0.0.0",
+  "type": "module",
+  "scripts": {
+    "dev": "vite",
+    "build": "vite build"
+  },
+  "dependencies": {
+    "react": "^19.1.0",
+    "react-dom": "^19.1.0",
+    "@laoliangfe/annotation-overlay-core": "workspace:*",
+    "@laoliangfe/annotation-overlay-react": "workspace:*"
+  },
+  "devDependencies": {
+    "@vitejs/plugin-react": "^5.0.0",
+    "@types/react": "^19.1.0",
+    "@types/react-dom": "^19.1.0",
+    "vite": "^8.1.1"
+  }
+}

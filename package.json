@@ -1,0 +1,35 @@
+{
+  "name": "annotation-overlay-monorepo",
+  "private": true,
+  "version": "0.0.0",
+  "description": "Monorepo for Annotation Overlay - Vue & React components",
+  "scripts": {
+    "dev": "turbo dev",
+    "dev:vue": "turbo dev --filter=@laoliangfe/annotation-overlay-demo-vue",
+    "dev:react": "turbo dev --filter=@laoliangfe/annotation-overlay-demo-react",
+    "build": "turbo build",
+    "build:core": "turbo build --filter=@laoliangfe/annotation-overlay-core",
+    "build:vue": "turbo build --filter=@laoliangfe/annotation-overlay-vue",
+    "build:react": "turbo build --filter=@laoliangfe/annotation-overlay-react",
+    "watch": "turbo run watch --filter=./packages/*",
+    "watch:core": "turbo run watch --filter=@laoliangfe/annotation-overlay-core",
+    "watch:vue": "turbo run watch --filter=@laoliangfe/annotation-overlay-vue",
+    "watch:react": "turbo run watch --filter=@laoliangfe/annotation-overlay-react",
+    "publish": "pnpm build && pnpm -r publish --access public",
+    "publish:vue": "pnpm build:vue && pnpm publish --filter=@laoliangfe/annotation-overlay-vue --access public",
+    "publish:react": "pnpm build:react && pnpm publish --filter=@laoliangfe/annotation-overlay-react --access public",
+    "clean": "turbo clean",
+    "clean:all": "turbo clean && rm -rf node_modules && pnpm -r exec -- rm -rf node_modules",
+    "format": "prettier --write \"**/*.{ts,tsx,vue,md}\"",
+    "type-check": "pnpm -r exec -- tsc --noEmit"
+  },
+  "devDependencies": {
+    "turbo": "^2.0.0",
+    "prettier": "^3.5.0",
+    "typescript": "~6.0.2"
+  },
+  "packageManager": "pnpm@11.7.0",
+  "engines": {
+    "node": ">=18"
+  }
+}

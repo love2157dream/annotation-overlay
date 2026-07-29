@@ -1,0 +1,17 @@
+{
+  "compilerOptions": {
+    "target": "ES2020",
+    "module": "ESNext",
+    "lib": ["ES2020", "DOM", "DOM.Iterable"],
+    "declaration": true,
+    "declarationDir": "dist", // 指定生成的 .d.ts 文件输出到 dist 目录。。
+    "rootDir": "./src", // 告诉 TypeScript 所有源码都在 ./src 目录下，输出时保持这个目录结构。
+    "emitDeclarationOnly": true, // 只生成声明文件，不生成 JS 文件（由 Vite 处理）。
+    "strict": true,
+    "moduleResolution": "bundler",
+    "skipLibCheck": true,
+    "jsx": "react-jsx"
+  },
+  "include": ["src/**/*.ts", "src/**/*.tsx"],
+  "exclude": ["node_modules", "dist"]
+}

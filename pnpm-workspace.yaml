@@ -1,0 +1,8 @@
+packages:
+  - 'packages/*'
+  - 'apps/*'
+
+# 允许执行原生构建脚本的包 (解决 esbuild/canvas 报错)
+allowBuilds:
+  canvas: true
+  esbuild: true

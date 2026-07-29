@@ -1,0 +1,36 @@
+{
+  "name": "@laoliangfe/annotation-overlay-core",
+  "version": "1.0.0",
+  "description": "Core annotation engine - framework agnostic",
+  "type": "module",
+  "main": "dist/index.js",
+  "module": "dist/index.es.js",
+  "types": "dist/index.d.ts",
+  "exports": {
+    ".": {
+      "import": "./dist/index.es.js",
+      "require": "./dist/index.js",
+      "types": "./dist/index.d.ts"
+    }
+  },
+  "files": [
+    "dist",
+    "README.md"
+  ],
+  "scripts": {
+    "build": "vite build && tsc --declaration --emitDeclarationOnly",
+    "watch": "vite build --watch"
+  },
+  "dependencies": {
+    "@zumer/snapdom": "^2.16.0",
+    "fabric": "^7.4.0"
+  },
+  "devDependencies": {
+    "@types/node": "^26.1.2",
+    "typescript": "~6.0.2",
+    "vite": "^8.1.1"
+  },
+  "publishConfig": {
+    "access": "public"
+  }
+}

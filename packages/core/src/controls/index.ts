@@ -1,0 +1,1 @@
+export { getDefaultControlConfig, applyControlConfig, enableSelectable, disableSelectable } from './objectControls';
