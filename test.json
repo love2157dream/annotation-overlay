@@ -1,0 +1,355 @@
+# turbo.json
+
+{
+  "$schema": "https://turbo.build/schema.json",
+  "globalDependencies": ["**/.env.*local"],
+  "tasks": {
+    "build": {
+      "dependsOn": ["^build"],
+      "outputs": ["dist/**"],
+      "inputs": ["$TURBO_DEFAULT$", "src/**"]
+    },
+    "dev": {
+      "cache": false,
+      "persistent": true
+    },
+    "watch": {
+      "cache": false,
+      "persistent": true,
+      "dependsOn": ["^build"]
+    },
+    "clean": {
+      "cache": false
+    }
+  }
+}
+
+# package.json
+
+{
+  "name": "annotation-overlay-monorepo",
+  "private": true,
+  "version": "0.0.0",
+  "description": "Monorepo for Annotation Overlay - Vue & React components",
+  "scripts": {
+    "dev": "turbo dev",
+    "dev:vue": "turbo dev --filter=@laoliangfe/annotation-overlay-demo-vue",
+    "dev:react": "turbo dev --filter=@laoliangfe/annotation-overlay-demo-react",
+    "build": "turbo build",
+    "build:core": "turbo build --filter=@laoliangfe/annotation-overlay-core",
+    "build:vue": "turbo build --filter=@laoliangfe/annotation-overlay-vue",
+    "build:react": "turbo build --filter=@laoliangfe/annotation-overlay-react",
+    "watch": "turbo run watch --filter=./packages/*",
+    "watch:core": "turbo run watch --filter=@laoliangfe/annotation-overlay-core",
+    "watch:vue": "turbo run watch --filter=@laoliangfe/annotation-overlay-vue",
+    "watch:react": "turbo run watch --filter=@laoliangfe/annotation-overlay-react",
+    "publish": "pnpm build && pnpm -r publish --access public",
+    "publish:vue": "pnpm build:vue && pnpm publish --filter=@laoliangfe/annotation-overlay-vue --access public",
+    "publish:react": "pnpm build:react && pnpm publish --filter=@laoliangfe/annotation-overlay-react --access public",
+    "clean": "turbo clean",
+    "clean:all": "turbo clean && rm -rf node_modules && pnpm -r exec -- rm -rf node_modules",
+    "format": "prettier --write \"**/*.{ts,tsx,vue,md}\"",
+    "type-check": "pnpm -r exec -- tsc --noEmit"
+  },
+  "devDependencies": {
+    "turbo": "^2.0.0",
+    "prettier": "^3.5.0",
+    "typescript": "~6.0.2"
+  },
+  "packageManager": "pnpm@11.7.0",
+  "engines": {
+    "node": ">=18"
+  }
+}
+===========================  core  ===========================
+
+# packages/core/package.json
+    {
+      "name": "@laoliangfe/annotation-overlay-core",
+      "version": "1.0.0",
+      "description": "Core annotation engine - framework agnostic",
+      "type": "module",
+      "main": "dist/index.js",
+      "module": "dist/index.es.js",
+      "types": "dist/index.d.ts",
+      "exports": {
+        ".": {
+          "import": "./dist/index.es.js",
+          "require": "./dist/index.js",
+          "types": "./dist/index.d.ts"
+        }
+      },
+      "files": [
+        "dist",
+        "README.md"
+      ],
+      "scripts": {
+        "build": "vite build && tsc --declaration --emitDeclarationOnly",
+        "watch": "concurrently --names \"vite,tsc\" --prefix-colors \"blue,yellow\" \"vite build --watch\" \"tsc --declaration --emitDeclarationOnly --watch\""
+      },
+      "dependencies": {
+        "@zumer/snapdom": "^2.16.0",
+        "fabric": "^7.4.0"
+      },
+      "devDependencies": {
+        "@types/node": "^26.1.2",
+        "concurrently": "^10.0.4",
+        "typescript": "~6.0.2",
+        "vite": "^8.1.1"
+      },
+      "publishConfig": {
+        "access": "public"
+      }
+    }
+      
+  # packages/core/tsconfig.ts  
+    {
+      "compilerOptions": {
+        "target": "ES2020",
+        "module": "ESNext",
+        "lib": ["ES2020", "DOM"],
+        "declaration": true,
+        "declarationDir": "dist",
+        "rootDir": "./src",
+        "emitDeclarationOnly": true,
+        "strict": true,
+        "moduleResolution": "bundler",
+        "skipLibCheck": true,
+        "esModuleInterop": true,
+        "types": ["node"]
+      },
+      "include": ["src/**/*.ts"],
+      "exclude": ["node_modules", "dist"]
+    }
+
+  # packages/core/vite.config.ts
+    import { defineConfig } from 'vite';
+    import { resolve } from 'path';
+
+    export default defineConfig({
+      build: {
+        lib: {
+          entry: resolve(__dirname, 'src/index.ts'),
+          name: 'AnnotationCore',
+          fileName: (format) => `index.${format}.js`,
+          formats: ['es', 'cjs'],
+        },
+        rollupOptions: {
+          external: ['fabric', '@zumer/snapdom'],
+        },
+        sourcemap: true,
+      },
+    });
+
+
+===========================  vue  ===========================
+    # packages/vue/package.json
+    {
+  "name": "@laoliangfe/annotation-overlay-vue",
+  "version": "1.0.0",
+  "description": "Vue 3 annotation overlay component",
+  "type": "module",
+  "main": "dist/index.umd.js",
+  "module": "dist/index.es.js",
+  "types": "dist/index.d.ts",
+  "exports": {
+    ".": {
+      "import": "./dist/index.es.js",
+      "require": "./dist/index.umd.js",
+      "types": "./dist/index.d.ts"
+    },
+    "./style.css": "./dist/style.css"
+  },
+  "files": [
+    "dist",
+    "README.md"
+  ],
+  "scripts": {
+    "build": "vite build && tsc --declaration --emitDeclarationOnly",
+    "watch": "vite build --watch"
+  },
+  "peerDependencies": {
+    "vue": "^3.5.39"
+  },
+  "dependencies": {
+    "@laoliangfe/annotation-overlay-core": "workspace:*"
+  },
+  "devDependencies": {
+    "@types/node": "^26.1.2",
+    "@vitejs/plugin-vue": "^6.0.0",
+    "typescript": "~6.0.2",
+    "vite": "^8.1.1",
+    "vite-plugin-dts": "^4.5.0",
+    "vue": "^3.5.39"
+  },
+  "publishConfig": {
+    "access": "public"
+  }
+}
+      
+  # packages/vue/tsconfig.ts  
+    {
+  "compilerOptions": {
+    "target": "ES2020",
+    "module": "ESNext",
+    "lib": ["ES2020", "DOM", "DOM.Iterable"],
+    "declaration": true,
+    "declarationDir": "dist",
+    "rootDir": "./src",
+    "emitDeclarationOnly": true,
+    "strict": true,
+    "moduleResolution": "bundler",
+    "skipLibCheck": true,
+    "jsx": "preserve"
+  },
+  "include": ["src/**/*.ts", "src/**/*.vue", "src/**/*.d.ts"],
+  "exclude": ["node_modules", "dist"]
+}
+    
+  # packages/vue/vite.config.ts
+    import { defineConfig } from 'vite';
+import vue from '@vitejs/plugin-vue';
+import dts from 'vite-plugin-dts';
+import { resolve } from 'path';
+
+export default defineConfig({
+  plugins: [
+    vue(),
+    dts({
+      include: ['src/**/*.ts', 'src/**/*.vue'],
+      outDir: 'dist',
+      insertTypesEntry: true,
+    }),
+  ],
+  build: {
+    lib: {
+      entry: resolve(__dirname, 'src/index.ts'),
+      name: 'AnnotationOverlayVue',
+      fileName: (format) => `index.${format}.js`,
+      formats: ['es', 'umd'],
+    },
+    rollupOptions: {
+      external: ['vue', '@laoliangfe/annotation-overlay-core'],
+      output: {
+        globals: {
+          vue: 'Vue',
+          '@laoliangfe/annotation-overlay-core': 'AnnotationCore',
+        },
+        assetFileNames: 'style.[ext]',
+         exports: 'named',
+      },
+    },
+    cssCodeSplit: false,
+    sourcemap: true,
+  },
+});
+
+
+
+===========================  react  ===========================
+
+    # packages/react/package.json
+    {
+  "name": "@laoliangfe/annotation-overlay-react",
+  "version": "1.0.0",
+  "description": "React 19 annotation overlay component",
+  "type": "module",
+  "main": "dist/index.umd.js",
+  "module": "dist/index.es.js",
+  "types": "dist/index.d.ts",
+  "exports": {
+    ".": {
+      "import": "./dist/index.es.js",
+      "require": "./dist/index.umd.js",
+      "types": "./dist/index.d.ts"
+    },
+    "./style.css": "./dist/style.css"
+  },
+  "files": [
+    "dist",
+    "README.md"
+  ],
+  "scripts": {
+    "build": "vite build && tsc --declaration --emitDeclarationOnly",
+    "watch": "vite build --watch"
+  },
+  "peerDependencies": {
+    "react": "^19.1.0",
+    "react-dom": "^19.1.0"
+  },
+  "dependencies": {
+    "@laoliangfe/annotation-overlay-core": "workspace:*"
+  },
+  "devDependencies": {
+    "@types/node": "^26.1.2",
+    "@types/react": "^19.1.0",
+    "@types/react-dom": "^19.1.0",
+    "@vitejs/plugin-react": "^5.0.0",
+    "react": "^19.1.0",
+    "react-dom": "^19.1.0",
+    "typescript": "~6.0.2",
+    "vite": "^8.1.1",
+    "vite-plugin-dts": "^4.5.0"
+  },
+  "publishConfig": {
+    "access": "public"
+  }
+}
+      
+  # packages/react/tsconfig.ts  
+    {
+  "compilerOptions": {
+    "target": "ES2020",
+    "module": "ESNext",
+    "lib": ["ES2020", "DOM", "DOM.Iterable"],
+    "declaration": true,
+    "declarationDir": "dist", // 指定生成的 .d.ts 文件输出到 dist 目录。。
+    "rootDir": "./src", // 告诉 TypeScript 所有源码都在 ./src 目录下，输出时保持这个目录结构。
+    "emitDeclarationOnly": true, // 只生成声明文件，不生成 JS 文件（由 Vite 处理）。
+    "strict": true,
+    "moduleResolution": "bundler",
+    "skipLibCheck": true,
+    "jsx": "react-jsx"
+  },
+  "include": ["src/**/*.ts", "src/**/*.tsx"],
+  "exclude": ["node_modules", "dist"]
+}
+    
+  # packages/react/vite.config.ts
+    import { defineConfig } from 'vite';
+import react from '@vitejs/plugin-react';
+import dts from 'vite-plugin-dts';
+import { resolve } from 'path';
+
+export default defineConfig({
+  plugins: [
+    react(),
+    dts({
+      include: ['src/**/*.ts', 'src/**/*.tsx'],
+      outDir: 'dist',
+      insertTypesEntry: true,
+    }),
+  ],
+  build: {
+    lib: {
+      entry: resolve(__dirname, 'src/index.ts'),
+      name: 'AnnotationOverlayReact',
+      fileName: (format) => `index.${format}.js`,
+      formats: ['es', 'umd'],
+    },
+    rollupOptions: {
+      external: ['react', 'react-dom', '@laoliangfe/annotation-overlay-core'],
+      output: {
+        globals: {
+          react: 'React',
+          'react-dom': 'ReactDOM',
+          '@laoliangfe/annotation-overlay-core': 'AnnotationCore',
+        },
+        assetFileNames: 'style.[ext]',
+        exports: 'named',
+      },
+    },
+    cssCodeSplit: false,
+    sourcemap: true,
+  },
+});

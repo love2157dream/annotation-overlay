@@ -62,5 +62,75 @@ const colors = ['#ff3b30', '#ffb020', '#34c759', '#0a84ff', '#af52de', '#111111'
 </script>
 
 <style scoped>
-/* 样式在父组件中定义 */
+.anno-style-panel {
+    position: absolute;
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 8px;
+    padding: 10px;
+    background: #fff;
+    border-radius: 10px;
+    box-shadow: 0 6px 24px rgba(0, 0, 0, 0.18);
+    font-size: 13px;
+    color: #555;
+    min-width: 140px;
+    cursor: default;
+}
+
+.anno-style-row {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    width: 100%;
+}
+
+.anno-style-row input[type="range"] {
+    flex: 1;
+    min-width: 80px;
+    cursor: pointer;
+}
+
+.anno-value {
+    min-width: 32px;
+    text-align: right;
+    font-size: 12px;
+    color: #888;
+}
+
+.anno-color-list {
+    display: flex;
+    gap: 6px;
+}
+
+.anno-label {
+    color: #888;
+    font-size: 12px;
+    min-width: 28px;
+}
+
+.anno-swatch {
+    width: 18px;
+    height: 18px;
+    border-radius: 50%;
+    border: 2px solid #ddd;
+    cursor: pointer;
+    flex-shrink: 0;
+}
+
+.anno-swatch.active {
+    border-color: #4f6bff;
+}
+
+.anno-color-picker {
+    width: 24px;
+    height: 18px;
+    border: 2px solid #ddd;
+    cursor: pointer;
+    overflow: hidden;
+}
+
+input[type="color"]::-webkit-color-swatch-wrapper {
+    padding: 0 !important;
+}
 </style>

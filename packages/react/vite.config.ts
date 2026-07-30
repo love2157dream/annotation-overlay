@@ -17,7 +17,7 @@ export default defineConfig({
       entry: resolve(__dirname, 'src/index.ts'),
       name: 'AnnotationOverlayReact',
       fileName: (format) => `index.${format}.js`,
-      formats: ['es', 'umd'],
+      formats: ['es', 'cjs'],
     },
     rollupOptions: {
       external: ['react', 'react-dom', '@laoliangfe/annotation-overlay-core'],

@@ -17,7 +17,7 @@ export default defineConfig({
       entry: resolve(__dirname, 'src/index.ts'),
       name: 'AnnotationOverlayVue',
       fileName: (format) => `index.${format}.js`,
-      formats: ['es', 'umd'],
+      formats: ['es', 'cjs'],
     },
     rollupOptions: {
       external: ['vue', '@laoliangfe/annotation-overlay-core'],

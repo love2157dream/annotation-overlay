@@ -3,13 +3,13 @@
   "version": "1.0.0",
   "description": "Vue 3 annotation overlay component",
   "type": "module",
-  "main": "dist/index.umd.js",
+  "main": "dist/index.cjs.js",
   "module": "dist/index.es.js",
   "types": "dist/index.d.ts",
   "exports": {
     ".": {
       "import": "./dist/index.es.js",
-      "require": "./dist/index.umd.js",
+      "require": "./dist/index.cjs.js",
       "types": "./dist/index.d.ts"
     },
     "./style.css": "./dist/style.css"
@@ -19,8 +19,8 @@
     "README.md"
   ],
   "scripts": {
-    "build": "vite build && tsc --declaration --emitDeclarationOnly",
-    "watch": "vite build --watch"
+    "build": "vue-tsc --noEmit && vite build",
+    "watch": "concurrently \"vue-tsc --noEmit --watch\" \"vite build --watch\""
   },
   "peerDependencies": {
     "vue": "^3.5.39"
@@ -31,10 +31,8 @@
   "devDependencies": {
     "@types/node": "^26.1.2",
     "@vitejs/plugin-vue": "^6.0.0",
-    "typescript": "~6.0.2",
-    "vite": "^8.1.1",
-    "vite-plugin-dts": "^4.5.0",
-    "vue": "^3.5.39"
+    "vue": "^3.5.39",
+    "vue-tsc": "^3.3.5"
   },
   "publishConfig": {
     "access": "public"

@@ -62,8 +62,20 @@ export function useAnnotationEngine() {
   };
 
   const dispose = (): void => {
-    engine.value?.destroy();
+    const engineInstance = engine.value;
     engine.value = null;
+    
+    if (engineInstance) {
+      // 使用 setTimeout 确保 DOM 更新完成
+      setTimeout(() => {
+        try {
+          engineInstance.destroy();
+        } catch (e) {
+          console.debug('销毁引擎时出错:', e);
+        }
+      }, 0);
+    }
+    
     isInitialized.value = false;
     currentTool.value = '';
     canUndo.value = false;

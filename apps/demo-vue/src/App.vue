@@ -34,7 +34,8 @@
 
 <script setup lang="ts">
 import { ref } from 'vue';
-import AnnotationOverlay, { type ConfirmPayload } from '@laoliangfe/annotation-overlay-vue';
+import AnnotationOverlay from '@laoliangfe/annotation-overlay-vue';
+import { ConfirmPayload } from '@laoliangfe/annotation-overlay-core';
 
 const annoRef = ref();
 const targetRef = ref<HTMLElement>();

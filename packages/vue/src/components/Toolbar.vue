@@ -86,5 +86,96 @@ function setToolBtnRef(el: any, idx: number): void {
 </script>
 
 <style scoped>
-/* 样式在父组件中定义 */
+.anno-toolbar {
+    display: flex;
+    align-items: center;
+    gap: 4px;
+    padding: 6px 10px;
+    background: #fff;
+    border-radius: 10px;
+    box-shadow: 0 6px 24px rgba(0, 0, 0, 0.18);
+    cursor: default;
+}
+
+.anno-drag-handle {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 24px;
+    height: 34px;
+    cursor: grab;
+    color: #999;
+    transition: color 0.2s;
+    flex-shrink: 0;
+}
+
+.anno-drag-handle:hover {
+    color: #555;
+}
+
+.anno-drag-handle:active {
+    cursor: grabbing;
+}
+
+.anno-sep {
+    width: 1px;
+    height: 20px;
+    background: #eee;
+    margin: 0 4px;
+    flex-shrink: 0;
+}
+
+.anno-tool-btn {
+    width: 34px;
+    height: 34px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border: none;
+    background: transparent;
+    border-radius: 6px;
+    color: #444;
+    cursor: pointer;
+    padding: 0;
+}
+
+.anno-tool-btn svg {
+    display: block;
+    width: 18px;
+    height: 18px;
+    flex-shrink: 0;
+}
+
+.anno-tool-btn:hover {
+    background: #f0f0f0;
+}
+
+.anno-tool-btn.active {
+    background: #eef2ff;
+    color: #4f6bff;
+}
+
+.anno-tool-btn:disabled {
+    opacity: 0.4;
+    cursor: not-allowed;
+}
+
+.anno-btn {
+    width: 60px;
+    height: 28px;
+    line-height: 14px;
+    padding: 6px 14px;
+    border-radius: 6px;
+    border: 1px solid #ddd;
+    background: #fff;
+    cursor: pointer;
+    font-size: 14px;
+    color: #000;
+}
+
+.anno-btn.primary {
+    background: #4f6bff;
+    border-color: #4f6bff;
+    color: #fff;
+}
 </style>

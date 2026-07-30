@@ -3,13 +3,13 @@
   "version": "1.0.0",
   "description": "React 19 annotation overlay component",
   "type": "module",
-  "main": "dist/index.umd.js",
+  "main": "dist/index.cjs.js",
   "module": "dist/index.es.js",
   "types": "dist/index.d.ts",
   "exports": {
     ".": {
       "import": "./dist/index.es.js",
-      "require": "./dist/index.umd.js",
+      "require": "./dist/index.cjs.js",
       "types": "./dist/index.d.ts"
     },
     "./style.css": "./dist/style.css"
@@ -19,8 +19,8 @@
     "README.md"
   ],
   "scripts": {
-    "build": "vite build && tsc --declaration --emitDeclarationOnly",
-    "watch": "vite build --watch"
+    "build": "tsc --noEmit && vite build",
+    "watch": "concurrently \"tsc --noEmit --watch\" \"vite build --watch\""
   },
   "peerDependencies": {
     "react": "^19.1.0",
@@ -35,10 +35,7 @@
     "@types/react-dom": "^19.1.0",
     "@vitejs/plugin-react": "^5.0.0",
     "react": "^19.1.0",
-    "react-dom": "^19.1.0",
-    "typescript": "~6.0.2",
-    "vite": "^8.1.1",
-    "vite-plugin-dts": "^4.5.0"
+    "react-dom": "^19.1.0"
   },
   "publishConfig": {
     "access": "public"

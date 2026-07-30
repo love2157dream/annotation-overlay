@@ -131,6 +131,7 @@ const close = (): void => {
 };
 
 const initEngine = async (targetEl: HTMLElement): Promise<void> => {
+    console.log('initEngine', targetEl);
     emit('beforeCapture', targetEl);
     await nextTick();
 
@@ -160,11 +161,13 @@ const handleUndo = (): void => undo();
 const handleRedo = (): void => redo();
 
 const handleCancel = (): void => {
+    console.log('handleCancel');
     emit('cancel');
     close();
 };
 
 const handleConfirm = async (): Promise<void> => {
+    console.log('handleConfirm');
     if (!engine.value) {
         // 没有引擎，直接返回原始截图
         const base64 = await domCapture(pendingTargetEl);
@@ -330,7 +333,6 @@ defineExpose({ open, close });
 </script>
 
 <style scoped>
-/* 所有样式都在这里集中定义，子组件复用 */
 .anno-overlay {
     position: fixed;
     z-index: 9999;
@@ -362,170 +364,5 @@ defineExpose({ open, close });
 
 .anno-topbar-group:active {
     cursor: grabbing;
-}
-
-.anno-drag-handle {
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    width: 24px;
-    height: 34px;
-    cursor: grab;
-    color: #999;
-    transition: color 0.2s;
-    flex-shrink: 0;
-}
-
-.anno-drag-handle:hover {
-    color: #555;
-}
-
-.anno-drag-handle:active {
-    cursor: grabbing;
-}
-
-.anno-toolbar {
-    display: flex;
-    align-items: center;
-    gap: 4px;
-    padding: 6px 10px;
-    background: #fff;
-    border-radius: 10px;
-    box-shadow: 0 6px 24px rgba(0, 0, 0, 0.18);
-    cursor: default;
-}
-
-.anno-style-panel {
-    position: absolute;
-    display: flex;
-    flex-direction: column;
-    align-items: flex-start;
-    gap: 8px;
-    padding: 10px;
-    background: #fff;
-    border-radius: 10px;
-    box-shadow: 0 6px 24px rgba(0, 0, 0, 0.18);
-    font-size: 13px;
-    color: #555;
-    min-width: 140px;
-    cursor: default;
-}
-
-.anno-style-row {
-    display: flex;
-    align-items: center;
-    gap: 8px;
-    width: 100%;
-}
-
-.anno-style-row input[type="range"] {
-    flex: 1;
-    min-width: 80px;
-    cursor: pointer;
-}
-
-.anno-value {
-    min-width: 32px;
-    text-align: right;
-    font-size: 12px;
-    color: #888;
-}
-
-.anno-color-list {
-    display: flex;
-    gap: 6px;
-}
-
-.anno-label {
-    color: #888;
-    font-size: 12px;
-    min-width: 28px;
-}
-
-.anno-tool-btn {
-    width: 34px;
-    height: 34px;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    border: none;
-    background: transparent;
-    border-radius: 6px;
-    color: #444;
-    cursor: pointer;
-    padding: 0;
-}
-
-.anno-tool-btn svg {
-    display: block;
-    width: 18px;
-    height: 18px;
-    flex-shrink: 0;
-}
-
-.anno-tool-btn:hover {
-    background: #f0f0f0;
-}
-
-.anno-tool-btn.active {
-    background: #eef2ff;
-    color: #4f6bff;
-}
-
-.anno-tool-btn:disabled {
-    opacity: 0.4;
-    cursor: not-allowed;
-}
-
-.anno-sep {
-    width: 1px;
-    height: 20px;
-    background: #eee;
-    margin: 0 4px;
-    flex-shrink: 0;
-}
-
-.anno-btn {
-    width: 60px;
-    height: 28px;
-    line-height: 14px;
-    padding: 6px 14px;
-    border-radius: 6px;
-    border: 1px solid #ddd;
-    background: #fff;
-    cursor: pointer;
-    font-size: 14px;
-    color: #000;
-}
-
-.anno-btn.primary {
-    background: #4f6bff;
-    border-color: #4f6bff;
-    color: #fff;
-}
-
-.anno-swatch {
-    width: 18px;
-    height: 18px;
-    border-radius: 50%;
-    border: 2px solid #ddd;
-    cursor: pointer;
-    flex-shrink: 0;
-}
-
-.anno-swatch.active {
-    border-color: #4f6bff;
-}
-
-.anno-color-picker {
-    width: 24px;
-    height: 18px;
-    border: 2px solid #ddd;
-    cursor: pointer;
-    overflow: hidden;
-}
-
-input[type="color"]::-webkit-color-swatch-wrapper {
-    padding: 0 !important;
 }
 </style>

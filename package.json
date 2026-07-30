@@ -19,14 +19,17 @@
     "publish:vue": "pnpm build:vue && pnpm publish --filter=@laoliangfe/annotation-overlay-vue --access public",
     "publish:react": "pnpm build:react && pnpm publish --filter=@laoliangfe/annotation-overlay-react --access public",
     "clean": "turbo clean",
-    "clean:all": "turbo clean && rm -rf node_modules && pnpm -r exec -- rm -rf node_modules",
+    "clean:all": "turbo clean && rm -rf node_modules  && pnpm -r exec -- rm -rf node_modules && pnpm -r exec -- rm -rf dist",
     "format": "prettier --write \"**/*.{ts,tsx,vue,md}\"",
     "type-check": "pnpm -r exec -- tsc --noEmit"
   },
   "devDependencies": {
-    "turbo": "^2.0.0",
+    "concurrently": "^10.0.4",
     "prettier": "^3.5.0",
-    "typescript": "~6.0.2"
+    "turbo": "^2.0.0",
+    "typescript": "~6.0.2",
+    "vite": "8.1.1",
+    "vite-plugin-dts": "4.5.0"
   },
   "packageManager": "pnpm@11.7.0",
   "engines": {

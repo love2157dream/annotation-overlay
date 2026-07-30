@@ -1,0 +1,1 @@
+export { domCapture } from './domCapture';

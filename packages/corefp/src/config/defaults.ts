@@ -1,0 +1,20 @@
+export const defaults = {
+  color: '#ff3b30',
+  lineWidth: 4,
+  fontSize: 20,
+  colors: ['#ff3b30', '#ffb020', '#34c759', '#0a84ff', '#af52de', '#111111', '#ffffff'],
+  minObjectSize: 10,
+  controls: {
+    cornerStyle: 'circle' as const,
+    cornerSize: 10,
+    cornerColor: '#4f6bff',
+    cornerStrokeColor: '#4f6bff',
+    transparentCorners: false,
+    borderColor: '#4f6bff',
+    borderDashArray: [4, 4],
+    borderOpacityWhenMoving: 0.5,
+    selectionBackgroundColor: 'rgba(79, 107, 255, 0.1)',
+    padding: 8,
+    objectCaching: false,
+  },
+};

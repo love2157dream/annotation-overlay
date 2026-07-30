@@ -275,15 +275,29 @@ export class CanvasEngine {
    * 切换工具
    */
   selectTool(toolId: ToolId): void {
-    // 如果正在文字编辑，先退出
     const currentTool = this.toolManager.getCurrentTool();
     if (currentTool?.id === 'text' && (currentTool as TextTool).isEditing) {
       (currentTool as TextTool).exitEditing(this.canvas!);
     }
     this.toolManager.switchTool(toolId);
+    
     if (this.canvas) {
       this.canvas.isDrawingMode = toolId === 'pen';
       this.canvas.selection = toolId === '';
+      
+      // 🔥 新增：光标映射
+      const cursorMap: Record<string, string> = {
+        'pen': 'crosshair',
+        'text': 'text',
+        'line': 'crosshair',
+        'arrow': 'crosshair',
+        'rect': 'crosshair',
+        'ellipse': 'crosshair',
+        '': 'default',
+      };
+      this.canvas.hoverCursor = cursorMap[toolId] || 'default';
+      this.canvas.defaultCursor = cursorMap[toolId] || 'default';
+      this.canvas.renderAll();
     }
   }
 
@@ -513,11 +527,46 @@ export class CanvasEngine {
    * 销毁
    */
   destroy(): void {
+    // 1. 停止所有工具
     this.toolManager.destroy();
+    
+    // 2. 清除事件总线
     this.eventBus.clear();
+    
+    // 3. 重置历史
     this.historyManager.reset();
-    this.canvas?.dispose();
-    this.canvas = null;
+    
+    // 4. 销毁画布
+    if (this.canvas) {
+      try {
+        // 移除所有对象（释放内存）
+        const objects = this.canvas.getObjects();
+        objects.forEach(obj => this.canvas?.remove(obj));
+        
+        // 移除背景
+        if (this.canvas.backgroundImage) {
+          this.canvas.remove(this.canvas.backgroundImage as any);
+          this.canvas.backgroundImage = undefined;
+        }
+        
+        // 清除事件
+        this.canvas.off();
+        
+        // 从 DOM 移除 canvas 元素
+        const canvasEl = this.canvas.getElement();
+        if (canvasEl && canvasEl.parentNode) {
+          canvasEl.parentNode.removeChild(canvasEl);
+        }
+        
+        // 释放 Fabric 实例
+        this.canvas.dispose();
+      } catch (e) {
+        // 忽略销毁过程中的错误
+        console.debug('销毁画布时出错:', e);
+      }
+      this.canvas = null;
+    }
+    
     this.isInitialized = false;
     this.targetEl = null;
   }
