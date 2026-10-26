@@ -24,12 +24,16 @@
 
 | 远端 | 地址 | 用途 |
 |---|---|---|
-| `github` | `git@github.com:love2157dream/annotation-overlay.git` | 对外仓库，CI / Pages 都看它 |
-| `origin` | `https://codeup.aliyun.com/.../annotation-overlay-fe.git` | 内部备份，可不同步 |
+| `origin` | `git@github.com:love2157dream/annotation-overlay.git` | **对外主仓（GitHub）**，CI / Pages 都看它 |
+| `aliyun` | `https://codeup.aliyun.com/.../annotation-overlay-fe.git` | **私有备份仓**，防止 GitHub 不可用时丢代码；不参与发布 |
 
 ```bash
 git checkout develop                    # 切换（已存在就直接切）
-git push github develop                 # 日常推这里，不会触发任何流水线
+git push origin develop                 # 日常推这里，不会触发任何流水线
+
+# 备份到私有仓（GitHub 不可用时的兜底，建议每次发版后跑一次）
+git push aliyun --all                   # 所有本地分支
+git push aliyun --tags                  # 所有 tag（含历史 v1.1.x）
 ```
 
 ## 1. 场景 → 版本号
@@ -63,17 +67,17 @@ pnpm build:pages
 # ⑤ 提交并推到 develop
 git add -A
 git commit -m "chore(release): v2.0.1"
-git push github develop
+git push origin develop
 
 # ⑥ 干跑，看 tarball 内容
 pnpm release:dry
 
 # ⑦ 合进 master、打 tag、推送（tag 触发 CI 自动发 npm）
 git checkout master
-git pull github master                       # 确保与远端一致，避免被拒
+git pull origin master                       # 确保与远端一致，避免被拒
 git merge --no-ff develop -m "chore(release): v2.0.1"
 git tag -a v2.0.1 -m "v2.0.1: 修复 xxx"
-git push github master --follow-tags
+git push origin master --follow-tags
 git checkout develop                         # 回到开发分支继续干活
 ```
 
@@ -156,7 +160,7 @@ pnpm docs:preview     # 本地看一眼（默认 4173，自动开浏览器）
 ```bash
 git add -A
 git commit -m "chore(release): v2.0.1"
-git push github develop
+git push origin develop
 ```
 
 版本号改动、CHANGELOG、重建后的 `docs/` 都进这一个提交。推到 `develop` 不会触发任何流水线。
@@ -183,10 +187,10 @@ pnpm release:dry
 
 ```bash
 git checkout master
-git pull github master                    # 先同步，防止 push 被拒
+git pull origin master                    # 先同步，防止 push 被拒
 git merge --no-ff develop -m "chore(release): v2.0.1"
 git tag -a v2.0.1 -m "v2.0.1: 修复移动端缩放坐标偏移"
-git push github master --follow-tags
+git push origin master --follow-tags
 ```
 
 - tag 名必须是 `v` + 版本号，且与 `package.json` 完全一致（`v2.0.1` ↔ `2.0.1`）；CI 会校验，不一致直接失败。
@@ -279,21 +283,22 @@ pnpm version:set 2.0.2 && pnpm release
 - [ ] CHANGELOG.md 已记录（含 Breaking 说明，如有）
 - [ ] `pnpm build:pages` 已重建，`pnpm docs:preview` 看过
 - [ ] `pnpm release:dry` 清单只有 3 个包
-- [ ] 已在 `develop` 提交并推送（`git push github develop`）
+- [ ] 已在 `develop` 提交并推送（`git push origin develop`）
 - [ ] 已合并到 `master` 并打 tag（`git merge --no-ff develop` + `git tag -a vX.Y.Z`）
-- [ ] `git push github master --follow-tags` 完成，Actions 变绿
+- [ ] `git push origin master --follow-tags` 完成，Actions 变绿
 - [ ] `npm view` 三个包版本都对，依赖只有 fabric / snapdom
 - [ ] `npm view ...-core` 仍是 404
 - [ ] 干净目录 `npm i` 安装成功
 - [ ] 线上站点刷新可见新版
 - [ ] 已切回 `develop` 继续开发
+- [ ] 已备份到私有仓（`git push aliyun --all && git push aliyun --tags`）
 
 ## 7. 常用命令速查
 
 ```bash
 git checkout develop / master                  # 切换分支
-git push github develop                        # 日常推送（不触发流水线）
-git push github master --follow-tags           # 发版推送（触发 CI 发布 + Pages）
+git push origin develop                        # 日常推送（不触发流水线）
+git push origin master --follow-tags           # 发版推送（触发 CI 发布 + Pages）
 pnpm dev / dev:vue / dev:react / dev:angular   # 开发
 pnpm build / build:vue / build:react           # 构建
 pnpm type-check                                # 类型检查

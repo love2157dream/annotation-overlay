@@ -30,6 +30,10 @@
 
 ## 2. 仓库整合（只做一次）
 
+> 📌 本节是**历史操作记录**，写于远端还叫 `github`（GitHub）/ `origin`（codeup）的时候。
+> 2026-10-26 已改成 **`origin` = GitHub**（对外主仓）、**`aliyun` = codeup**（私有备份仓），
+> 所以下面命令里的 `github` / `origin` 与现在的实际名字不同 —— 只是留档，不要再照着执行。
+
 目标：GitHub 仓库 `main` 放 monorepo，老代码留在分支与 tag 上，Pages 地址不变。当前 monorepo 的远端是 codeup，需要切到 GitHub。
 
 ```bash
@@ -136,7 +140,7 @@ npm deprecate @laoliangfe/annotation-overlay@"<=1.1.7" \
 
 1. 版本号一律用 `pnpm version:set patch|minor|major`（一次改 5 个 package.json），**不要手改**，也**不要忘记改** —— 忘记改时 CI 会因「版本已存在」把三个包全部跳过，流水线仍然显示成功。
 2. tag 名必须是 `v` + 版本号，且与 `packages/core/package.json` 的 `version` 完全一致，否则 CI 的校验步骤直接失败。
-3. 分支：日常开发与提交都在 **`develop`**，**`master`** 只接受从 `develop` 合并并在其上打 tag；对外远端是 **`github`**，`origin` 指向 codeup 仅作备份。
+3. 分支：日常开发与提交都在 **`develop`**，**`master`** 只接受从 `develop` 合并并在其上打 tag；远端命名：**`origin` = GitHub 对外主仓**（CI / Pages 看它），**`aliyun` = codeup 私有备份仓**（只备份，不参与发布）。
 
 自动发布依赖的一次性配置：
 
