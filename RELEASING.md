@@ -12,7 +12,25 @@
 | **三个包版本号必须一致** | 用 `pnpm version:set` 一次改 5 个 package.json（含内部包），别手改 |
 | **tag 必须等于版本号** | CI 会校验 `v2.0.1` 与 `packages/core/package.json` 的 `version`，不一致直接失败 |
 | **忘记改版本号 = 什么都没发** | CI 的守卫会跳过「registry 上已存在」的版本，三个全跳过、流水线照样是绿的，但 npm 上没有新版本 |
-| **代码分支是 `master`** | 远端有两个：`github`（GitHub，对外）和 `origin`（codeup，备份） |
+| **日常在 `develop`，`master` 只用来发版** | `master` 的每次变动都会触发 Pages 重新部署；没打算发的改动别往它上面推 |
+
+### 分支与远端
+
+| 分支 | 用途 | 谁在盯 |
+|---|---|---|
+| `develop` | 日常开发：改代码、修 bug、写文档，随便提交随便推 | 无（不触发 CI / Pages） |
+| `master` | 发版分支：只接受从 `develop` 合并，并在这里打 tag | Pages 部署 + tag 触发 npm 发布 |
+| `legacy/v1` | 老 1.x 存档，只读 | — |
+
+| 远端 | 地址 | 用途 |
+|---|---|---|
+| `github` | `git@github.com:love2157dream/annotation-overlay.git` | 对外仓库，CI / Pages 都看它 |
+| `origin` | `https://codeup.aliyun.com/.../annotation-overlay-fe.git` | 内部备份，可不同步 |
+
+```bash
+git checkout develop                    # 切换（已存在就直接切）
+git push github develop                 # 日常推这里，不会触发任何流水线
+```
 
 ## 1. 场景 → 版本号
 
@@ -28,7 +46,8 @@
 ## 2. 完整流程一览
 
 ```bash
-# ① 改完代码，本地自测
+# ① 在 develop 上改完代码，本地自测
+git checkout develop
 pnpm dev                # 三个 demo 一起起，手点一遍功能
 pnpm build              # 必须全绿
 pnpm type-check         # 类型检查
@@ -41,16 +60,21 @@ pnpm version:set patch
 # ④ 重建 docs 站点（demo 产物要跟着新版本一起更新）
 pnpm build:pages
 
-# ⑤ 提交
+# ⑤ 提交并推到 develop
 git add -A
 git commit -m "chore(release): v2.0.1"
-git tag -a v2.0.1 -m "v2.0.1: 修复 xxx"
+git push github develop
 
 # ⑥ 干跑，看 tarball 内容
 pnpm release:dry
 
-# ⑦ 推送（tag 触发 CI 自动发 npm）
+# ⑦ 合进 master、打 tag、推送（tag 触发 CI 自动发 npm）
+git checkout master
+git pull github master                       # 确保与远端一致，避免被拒
+git merge --no-ff develop -m "chore(release): v2.0.1"
+git tag -a v2.0.1 -m "v2.0.1: 修复 xxx"
 git push github master --follow-tags
+git checkout develop                         # 回到开发分支继续干活
 ```
 
 下面逐步展开，每一步都写了「怎么确认成功」。
@@ -127,15 +151,21 @@ pnpm docs:preview     # 本地看一眼（默认 4173，自动开浏览器）
 
 > ⚠️ 不要手改 `docs/index.html`，它由 `scripts/build-pages.mjs` 生成，下次构建会被覆盖。
 
-### ⑤ 提交并打 tag
+### ⑤ 提交到 develop
 
 ```bash
 git add -A
 git commit -m "chore(release): v2.0.1"
-git tag -a v2.0.1 -m "v2.0.1: 修复移动端缩放坐标偏移"
+git push github develop
 ```
 
-tag 名必须是 `v` + 版本号，且与 package.json 完全一致（`v2.0.1` ↔ `2.0.1`）。
+版本号改动、CHANGELOG、重建后的 `docs/` 都进这一个提交。推到 `develop` 不会触发任何流水线。
+
+提交前确认没混进无关文件：
+
+```bash
+git show --stat HEAD
+```
 
 ### ⑥ 干跑
 
@@ -149,17 +179,23 @@ pnpm release:dry
 - tarball 里有 `dist/`、`README.md`，**没有 `src/`**
 - 包体积与此前版本接近（vue ≈ 108K / react ≈ 100K / angular ≈ 52K）
 
-### ⑦ 发布
-
-**方案 A：交给 CI（推荐）**
+### ⑦ 合并到 master 并发布
 
 ```bash
+git checkout master
+git pull github master                    # 先同步，防止 push 被拒
+git merge --no-ff develop -m "chore(release): v2.0.1"
+git tag -a v2.0.1 -m "v2.0.1: 修复移动端缩放坐标偏移"
 git push github master --follow-tags
 ```
 
+- tag 名必须是 `v` + 版本号，且与 `package.json` 完全一致（`v2.0.1` ↔ `2.0.1`）；CI 会校验，不一致直接失败。
+- 用 `--no-ff` 而不是快进合并，是为了在 `master` 上留一个清晰的「本次发版」节点，回滚时一眼能找到边界。
+- `--follow-tags` 会把本次推送范围内可达的注解 tag 一起推上去；tag 到达远端那一刻 CI 才开始发布。
+
 推 tag 会触发 `.github/workflows/release.yml`：安装 → 校验版本 → 构建 → 逐个包查 registry（已存在则跳过）→ 发布 → 建 GitHub Release。
 
-到 GitHub 仓库 **Actions → Release** 看进度，绿了再往下走。
+到 GitHub 仓库 **Actions → Release** 看进度，绿了再往下走。发完记得 `git checkout develop` 回到开发分支。
 
 **方案 B：本地发（CI 挂了 / 只想先本地验证时）**
 
@@ -243,16 +279,21 @@ pnpm version:set 2.0.2 && pnpm release
 - [ ] CHANGELOG.md 已记录（含 Breaking 说明，如有）
 - [ ] `pnpm build:pages` 已重建，`pnpm docs:preview` 看过
 - [ ] `pnpm release:dry` 清单只有 3 个包
-- [ ] 已 `git commit` + `git tag -a vX.Y.Z`
+- [ ] 已在 `develop` 提交并推送（`git push github develop`）
+- [ ] 已合并到 `master` 并打 tag（`git merge --no-ff develop` + `git tag -a vX.Y.Z`）
 - [ ] `git push github master --follow-tags` 完成，Actions 变绿
 - [ ] `npm view` 三个包版本都对，依赖只有 fabric / snapdom
 - [ ] `npm view ...-core` 仍是 404
 - [ ] 干净目录 `npm i` 安装成功
 - [ ] 线上站点刷新可见新版
+- [ ] 已切回 `develop` 继续开发
 
 ## 7. 常用命令速查
 
 ```bash
+git checkout develop / master                  # 切换分支
+git push github develop                        # 日常推送（不触发流水线）
+git push github master --follow-tags           # 发版推送（触发 CI 发布 + Pages）
 pnpm dev / dev:vue / dev:react / dev:angular   # 开发
 pnpm build / build:vue / build:react           # 构建
 pnpm type-check                                # 类型检查
@@ -264,9 +305,4 @@ pnpm release                                   # 本地真发
 pnpm clean:all                                 # 清 node_modules + dist（环境出怪问题时）
 ```
 
-远端对应关系：
-
-| 名称 | 地址 | 用途 |
-|---|---|---|
-| `github` | `git@github.com:love2157dream/annotation-overlay.git` | 对外仓库，推送即触发 CI / Pages |
-| `origin` | `https://codeup.aliyun.com/.../annotation-overlay-fe.git` | 内部备份，可不同步 |
+分支与远端的对应关系见本文开头的「分支与远端」小节。

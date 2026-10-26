@@ -136,7 +136,7 @@ npm deprecate @laoliangfe/annotation-overlay@"<=1.1.7" \
 
 1. 版本号一律用 `pnpm version:set patch|minor|major`（一次改 5 个 package.json），**不要手改**，也**不要忘记改** —— 忘记改时 CI 会因「版本已存在」把三个包全部跳过，流水线仍然显示成功。
 2. tag 名必须是 `v` + 版本号，且与 `packages/core/package.json` 的 `version` 完全一致，否则 CI 的校验步骤直接失败。
-3. 发布分支是 **`master`**，对外远端是 **`github`**；`origin` 指向 codeup，仅作备份。
+3. 分支：日常开发与提交都在 **`develop`**，**`master`** 只接受从 `develop` 合并并在其上打 tag；对外远端是 **`github`**，`origin` 指向 codeup 仅作备份。
 
 自动发布依赖的一次性配置：
 
