@@ -1,7 +1,7 @@
 name: Release
 
-# 打 tag 触发发布（tag 形如 v1.0.0）。
-# 五个包按依赖顺序发布：core / ui 先发，vue / react / angular 依赖它们的真实版本号。
+# 打 tag 触发发布（tag 形如 v2.0.0）。
+# npm 上只发 3 个包：-vue / -react / -angular（core 与 ui 是 private，已内联进三者，不单独发）。
 # 版本号统一由 `pnpm version:set` 维护，tag 必须与 package.json 的 version 一致。
 on:
   push:
@@ -21,8 +21,9 @@ jobs:
 
       - name: 安装 pnpm
         uses: pnpm/action-setup@v4
-        with:
-          version: 11
+        # 不要写 with.version：根 package.json 已有 packageManager: "pnpm@11.7.0"，
+        # 两处都指定会直接报 ERR_PNPM_BAD_PM_VERSION（Multiple versions of pnpm specified），
+        # 整条流水线会卡在这一步。版本统一以 packageManager 为准。
 
       - name: 安装 Node
         uses: actions/setup-node@v4
@@ -53,13 +54,26 @@ jobs:
         run: pnpm build
 
       - name: 发布到 npm
-        # pnpm -r 按拓扑序发布；--no-git-checks 允许 CI 里存在未提交的构建产物
-        # 已发布过的版本会被自动跳过，因此重跑 job 是安全的
-        run: pnpm -r publish --access public --no-git-checks
+        # pnpm publish 没有「跳过已存在版本」的开关，版本重复时 registry 直接返回 403，
+        # 整条流水线会红掉。所以先逐个查 registry，已存在就跳过，再发没有的。
+        # 好处：重跑 job 安全；某个包已在本地手动发过也不会卡住；三个包互不依赖，失败可单点重试。
         env:
           NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
-          # 如需 npm 供应链签名（provenance），把下一行取消注释，且仓库必须是 public
-          # NPM_CONFIG_PROVENANCE: true
+        run: |
+          set -euo pipefail
+          for pkg in vue react angular; do
+            dir="packages/$pkg"
+            name=$(node -p "require('./$dir/package.json').name")
+            version=$(node -p "require('./$dir/package.json').version")
+            # npm view 走公共读接口，无需 token；能读到说明该版本已发布过
+            if npm view "$name@$version" version >/dev/null 2>&1; then
+              echo "跳过 $name@$version（registry 上已存在）"
+              continue
+            fi
+            echo "发布 $name@$version"
+            # --no-git-checks：dist/ 是被 .gitignore 忽略的构建产物，publish 时必须放行
+            (cd "$dir" && pnpm publish --access public --no-git-checks)
+          done
 
       - name: 创建 GitHub Release
         uses: softprops/action-gh-release@v2

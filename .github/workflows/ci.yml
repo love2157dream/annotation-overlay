@@ -1,10 +1,11 @@
 name: CI
 
-# 每次推送 main 或提 PR 时验证：依赖可安装、5 个包能构建、三个 demo 能出产物。
+# 每次推送 main / master 或提 PR 时验证：依赖可安装、5 个包能构建、三个 demo 能出产物。
 # 注意：这里不发布任何东西，发布由 release.yml（打 tag 触发）负责。
 on:
   push:
-    branches: [main]
+    # master 是当前主分支（main 里只有一个 Initial commit），两个都监听避免推送后没有 CI
+    branches: [main, master]
   pull_request:
   workflow_dispatch:
 
@@ -22,9 +23,9 @@ jobs:
 
       - name: 安装 pnpm
         uses: pnpm/action-setup@v4
-        with:
-          # 与根 package.json 的 packageManager 字段保持一致
-          version: 11
+        # 不要写 with.version：根 package.json 已有 packageManager: "pnpm@11.7.0"，
+        # 两处都指定会直接报 ERR_PNPM_BAD_PM_VERSION（Multiple versions of pnpm specified）。
+        # 版本统一由 packageManager 决定，本地与 CI 才能保证一致。
 
       - name: 安装 Node
         uses: actions/setup-node@v4

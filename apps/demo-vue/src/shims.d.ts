@@ -13,6 +13,18 @@
  */
 // apps/demo-vue/src/shims.d.ts
 
+// 0. 声明 *.vue 单文件组件的模块类型
+// 纯 tsc（根目录 type-check 脚本就是这种）不认识 .vue，遇到 `import App from './App.vue'`
+// 会报 TS2307「找不到模块」。vue-tsc 自己能解析 SFC，但它只用于本包的 build 脚本；
+// CI 跑的是通用 tsc，所以这里必须补一条通配声明兜底。
+// 代价是 tsc 不再检查 SFC 内部错误——那是 vue-tsc 的职责，build 阶段会拦住。
+declare module '*.vue' {
+  import type { DefineComponent } from 'vue';
+  // 通用组件类型：props 等细节不在这里建模，避免与真实 SFC 签名冲突
+  const component: DefineComponent<Record<string, unknown>, Record<string, unknown>, unknown>;
+  export default component;
+}
+
 // 1. 声明所有 CSS 文件的模块类型
 // 通配声明：任何 *.css 导入都被视为「默认导出字符串」，内容对 TS 不重要
 declare module '*.css' {
