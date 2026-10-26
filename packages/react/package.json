@@ -1,16 +1,41 @@
 {
   "name": "@laoliangfe/annotation-overlay-react",
-  "version": "1.0.0",
-  "description": "React 19 annotation overlay component",
+  "version": "2.0.0",
+  "description": "React annotation overlay component: screenshot a DOM element, draw on it with Fabric.js, export a PNG",
+  "keywords": [
+    "annotation",
+    "annotate",
+    "screenshot",
+    "canvas",
+    "fabric",
+    "fabricjs",
+    "image-annotation",
+    "react",
+    "react-component"
+  ],
+  "homepage": "https://love2157dream.github.io/annotation-overlay/",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/love2157dream/annotation-overlay.git",
+    "directory": "packages/react"
+  },
+  "bugs": {
+    "url": "https://github.com/love2157dream/annotation-overlay/issues"
+  },
+  "author": "love2157dream",
+  "license": "MIT",
+  "engines": {
+    "node": ">=18"
+  },
   "type": "module",
   "main": "dist/index.cjs.js",
   "module": "dist/index.es.js",
   "types": "dist/index.d.ts",
   "exports": {
     ".": {
+      "types": "./dist/index.d.ts",
       "import": "./dist/index.es.js",
-      "require": "./dist/index.cjs.js",
-      "types": "./dist/index.d.ts"
+      "require": "./dist/index.cjs.js"
     },
     "./style.css": "./dist/style.css"
   },
@@ -18,24 +43,30 @@
     "dist",
     "README.md"
   ],
+  "sideEffects": [
+    "**/*.css"
+  ],
   "scripts": {
-    "build": "tsc --noEmit && vite build",
+    "build": "tsc --noEmit && vite build && node ../../scripts/inline-internal-types.mjs --dist dist",
     "watch": "concurrently \"tsc --noEmit --watch\" \"vite build --watch\""
   },
   "peerDependencies": {
-    "react": "^19.1.0",
-    "react-dom": "^19.1.0"
+    "react": "^18.3.1",
+    "react-dom": "^18.3.1"
   },
   "dependencies": {
-    "@laoliangfe/annotation-overlay-core": "workspace:*"
+    "@zumer/snapdom": "^2.16.0",
+    "fabric": "^7.4.0"
   },
   "devDependencies": {
+    "@laoliangfe/annotation-overlay-core": "workspace:*",
+    "@laoliangfe/annotation-overlay-ui": "workspace:*",
     "@types/node": "^26.1.2",
-    "@types/react": "^19.1.0",
-    "@types/react-dom": "^19.1.0",
+    "@types/react": "^18.3.0",
+    "@types/react-dom": "^18.3.0",
     "@vitejs/plugin-react": "^5.0.0",
-    "react": "^19.1.0",
-    "react-dom": "^19.1.0"
+    "react": "^18.3.1",
+    "react-dom": "^18.3.1"
   },
   "publishConfig": {
     "access": "public"

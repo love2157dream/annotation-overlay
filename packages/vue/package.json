@@ -1,16 +1,41 @@
 {
   "name": "@laoliangfe/annotation-overlay-vue",
-  "version": "1.0.0",
-  "description": "Vue 3 annotation overlay component",
+  "version": "2.0.0",
+  "description": "Vue 3 annotation overlay component: screenshot a DOM element, draw on it with Fabric.js, export a PNG",
+  "keywords": [
+    "annotation",
+    "annotate",
+    "screenshot",
+    "canvas",
+    "fabric",
+    "fabricjs",
+    "image-annotation",
+    "vue",
+    "vue3"
+  ],
+  "homepage": "https://love2157dream.github.io/annotation-overlay/",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/love2157dream/annotation-overlay.git",
+    "directory": "packages/vue"
+  },
+  "bugs": {
+    "url": "https://github.com/love2157dream/annotation-overlay/issues"
+  },
+  "author": "love2157dream",
+  "license": "MIT",
+  "engines": {
+    "node": ">=18"
+  },
   "type": "module",
   "main": "dist/index.cjs.js",
   "module": "dist/index.es.js",
   "types": "dist/index.d.ts",
   "exports": {
     ".": {
+      "types": "./dist/index.d.ts",
       "import": "./dist/index.es.js",
-      "require": "./dist/index.cjs.js",
-      "types": "./dist/index.d.ts"
+      "require": "./dist/index.cjs.js"
     },
     "./style.css": "./dist/style.css"
   },
@@ -18,17 +43,23 @@
     "dist",
     "README.md"
   ],
+  "sideEffects": [
+    "**/*.css"
+  ],
   "scripts": {
-    "build": "vue-tsc --noEmit && vite build",
+    "build": "vue-tsc --noEmit && vite build && node ../../scripts/inline-internal-types.mjs --dist dist",
     "watch": "concurrently \"vue-tsc --noEmit --watch\" \"vite build --watch\""
   },
   "peerDependencies": {
     "vue": "^3.5.39"
   },
   "dependencies": {
-    "@laoliangfe/annotation-overlay-core": "workspace:*"
+    "@zumer/snapdom": "^2.16.0",
+    "fabric": "^7.4.0"
   },
   "devDependencies": {
+    "@laoliangfe/annotation-overlay-core": "workspace:*",
+    "@laoliangfe/annotation-overlay-ui": "workspace:*",
     "@types/node": "^26.1.2",
     "@vitejs/plugin-vue": "^6.0.0",
     "vue": "^3.5.39",

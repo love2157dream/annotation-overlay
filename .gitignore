@@ -10,6 +10,9 @@ node_modules/
 dist/
 .turbo/
 *.tsbuildinfo
+# Angular CLI 的编译缓存：放在 .angular/cache 下（不是 .cache/，上面那条 */.cache 匹配不到），
+# 里面是 sqlite 数据库 + lock 文件，体积大且每次构建都变，绝不入库。
+.angular/
 
 # ============================================================
 # 日志文件

@@ -1,0 +1,58 @@
+{
+  "name": "@laoliangfe/annotation-overlay-ui",
+  "private": true,
+  "version": "2.0.0",
+  "description": "Shared UI assets for annotation overlay: design tokens, flex styles, SVG icons, toolbar structure data. No framework, no UI library.",
+  "keywords": [
+    "annotation",
+    "annotation-overlay",
+    "icons",
+    "design-tokens",
+    "css",
+    "ui"
+  ],
+  "homepage": "https://love2157dream.github.io/annotation-overlay/",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/love2157dream/annotation-overlay.git",
+    "directory": "packages/ui"
+  },
+  "bugs": {
+    "url": "https://github.com/love2157dream/annotation-overlay/issues"
+  },
+  "author": "love2157dream",
+  "license": "MIT",
+  "engines": {
+    "node": ">=18"
+  },
+  "type": "module",
+  "main": "dist/index.cjs.js",
+  "module": "dist/index.es.js",
+  "types": "dist/index.d.ts",
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "import": "./dist/index.es.js",
+      "require": "./dist/index.cjs.js"
+    },
+    "./style.css": "./dist/style.css"
+  },
+  "files": [
+    "dist",
+    "README.md"
+  ],
+  "sideEffects": [
+    "**/*.css"
+  ],
+  "scripts": {
+    "build": "tsc --noEmit && vite build",
+    "watch": "concurrently \"tsc --noEmit --watch\" \"vite build --watch\""
+  },
+  "devDependencies": {
+    "@types/node": "^26.1.2",
+    "concurrently": "^10.0.4"
+  },
+  "publishConfig": {
+    "access": "public"
+  }
+}

@@ -1,0 +1,77 @@
+name: Release
+
+# 打 tag 触发发布（tag 形如 v1.0.0）。
+# 五个包按依赖顺序发布：core / ui 先发，vue / react / angular 依赖它们的真实版本号。
+# 版本号统一由 `pnpm version:set` 维护，tag 必须与 package.json 的 version 一致。
+on:
+  push:
+    tags:
+      - 'v*'
+
+permissions:
+  contents: write # 创建 GitHub Release
+  id-token: write # 如需 npm provenance 必须开启
+
+jobs:
+  publish:
+    runs-on: ubuntu-latest
+    steps:
+      - name: 检出代码
+        uses: actions/checkout@v4
+
+      - name: 安装 pnpm
+        uses: pnpm/action-setup@v4
+        with:
+          version: 11
+
+      - name: 安装 Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: pnpm
+          # 让 npm 从 NODE_AUTH_TOKEN 读取凭证（写入临时 .npmrc）
+          registry-url: https://registry.npmjs.org
+
+      - name: 安装依赖
+        run: pnpm install --frozen-lockfile
+
+      - name: 校验 tag 与包版本一致
+        # 防止「打了 v1.0.1 的 tag，但 package.json 还是 1.0.0」导致重复发布失败
+        run: |
+          node -e "
+          const fs = require('fs');
+          const v = JSON.parse(fs.readFileSync('packages/core/package.json')).version;
+          const t = process.env.GITHUB_REF_NAME.replace(/^v/, '');
+          if (v !== t) {
+            console.error('tag ' + t + ' 与包版本 ' + v + ' 不一致');
+            process.exit(1);
+          }
+          console.log('版本校验通过:', v);
+          "
+
+      - name: 构建
+        run: pnpm build
+
+      - name: 发布到 npm
+        # pnpm -r 按拓扑序发布；--no-git-checks 允许 CI 里存在未提交的构建产物
+        # 已发布过的版本会被自动跳过，因此重跑 job 是安全的
+        run: pnpm -r publish --access public --no-git-checks
+        env:
+          NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
+          # 如需 npm 供应链签名（provenance），把下一行取消注释，且仓库必须是 public
+          # NPM_CONFIG_PROVENANCE: true
+
+      - name: 创建 GitHub Release
+        uses: softprops/action-gh-release@v2
+        with:
+          generate_release_notes: true
+          body: |
+            对应 npm 包（同一版本号）：
+
+            - `@laoliangfe/annotation-overlay-vue`
+            - `@laoliangfe/annotation-overlay-react`
+            - `@laoliangfe/annotation-overlay-angular`
+
+            引擎（core）与样式（ui）是内部包，已内联进上述三个包，不单独发布。
+
+            在线演示与文档：https://love2157dream.github.io/annotation-overlay/

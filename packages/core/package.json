@@ -1,16 +1,42 @@
 {
   "name": "@laoliangfe/annotation-overlay-core",
-  "version": "1.0.0",
-  "description": "Core annotation engine - framework agnostic",
+  "private": true,
+  "version": "2.0.0",
+  "description": "Core annotation engine - framework agnostic, functional programming (closure factories, no classes)",
+  "keywords": [
+    "annotation",
+    "annotate",
+    "screenshot",
+    "canvas",
+    "fabric",
+    "fabricjs",
+    "image-annotation",
+    "typescript",
+    "framework-agnostic"
+  ],
+  "homepage": "https://love2157dream.github.io/annotation-overlay/",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/love2157dream/annotation-overlay.git",
+    "directory": "packages/core"
+  },
+  "bugs": {
+    "url": "https://github.com/love2157dream/annotation-overlay/issues"
+  },
+  "author": "love2157dream",
+  "license": "MIT",
+  "engines": {
+    "node": ">=18"
+  },
   "type": "module",
   "main": "dist/index.cjs.js",
   "module": "dist/index.es.js",
   "types": "dist/index.d.ts",
   "exports": {
     ".": {
+      "types": "./dist/index.d.ts",
       "import": "./dist/index.es.js",
-      "require": "./dist/index.cjs.js",
-      "types": "./dist/index.d.ts"
+      "require": "./dist/index.cjs.js"
     }
   },
   "files": [
@@ -26,8 +52,7 @@
     "fabric": "^7.4.0"
   },
   "devDependencies": {
-    "@types/node": "^26.1.2",
-    "vue-tsc": "^3.3.5"
+    "@types/node": "^26.1.2"
   },
   "publishConfig": {
     "access": "public"

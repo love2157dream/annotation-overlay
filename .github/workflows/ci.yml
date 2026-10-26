@@ -1,0 +1,48 @@
+name: CI
+
+# 每次推送 main 或提 PR 时验证：依赖可安装、5 个包能构建、三个 demo 能出产物。
+# 注意：这里不发布任何东西，发布由 release.yml（打 tag 触发）负责。
+on:
+  push:
+    branches: [main]
+  pull_request:
+  workflow_dispatch:
+
+# 同一分支的新推送取消上一次未完成的运行，节省 CI 时间
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - name: 检出代码
+        uses: actions/checkout@v4
+
+      - name: 安装 pnpm
+        uses: pnpm/action-setup@v4
+        with:
+          # 与根 package.json 的 packageManager 字段保持一致
+          version: 11
+
+      - name: 安装 Node
+        uses: actions/setup-node@v4
+        with:
+          # Angular 21 要求 Node 20+，这里用 22 与本地保持一致
+          node-version: 22
+          cache: pnpm
+
+      - name: 安装依赖
+        # CI 必须用 --frozen-lockfile：锁文件与 package.json 不一致时直接失败，避免「本地能装、CI 装出别的版本」
+        run: pnpm install --frozen-lockfile
+
+      - name: 类型检查
+        run: pnpm type-check
+
+      - name: 构建全部包与 demo
+        run: pnpm build
+
+      - name: 构建 Pages 站点（验证 docs 可生成）
+        # 只验证构建链路；docs/ 的提交与发布走分支部署，不在 CI 里自动提交
+        run: pnpm build:pages

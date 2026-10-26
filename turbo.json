@@ -1,21 +1,29 @@
 {
   "$schema": "https://turbo.build/schema.json",
+  // 这些文件变化时让所有任务的缓存失效（本地 .env 覆盖会影响构建结果）
   "globalDependencies": ["**/.env.*local"],
   "tasks": {
+    // 构建：先构建上游依赖（^build），产物 dist/ 纳入缓存，
+    // inputs 限定为源码目录，避免 README 改动导致整包重编
     "build": {
       "dependsOn": ["^build"],
       "outputs": ["dist/**"],
       "inputs": ["$TURBO_DEFAULT$", "src/**"]
     },
+    // 开发服务器：不缓存、常驻进程；同样先等上游包构建完成，
+    // 否则全新克隆的仓库直接 pnpm dev 会因找不到 dist 而白屏
     "dev": {
       "cache": false,
-      "persistent": true
+      "persistent": true,
+      "dependsOn": ["^build"]
     },
+    // 库的监听构建（packages 改完自动产出 dist，供 demo 热更新消费）
     "watch": {
       "cache": false,
       "persistent": true,
       "dependsOn": ["^build"]
     },
+    // 清理产物与缓存
     "clean": {
       "cache": false
     }

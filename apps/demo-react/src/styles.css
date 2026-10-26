@@ -1,0 +1,360 @@
+/* ============================================================
+ * demo-react 页面样式（与 demo-vue / demo-angular 保持一致）
+ * 布局：上方待标注区域（大） + 下方标注预览区域
+ *
+ * 全部尺寸都围绕一个前提：让 .content-area 在常见窗口高度下完整可见。
+ * 覆盖层的画布尺寸取自目标元素的 getBoundingClientRect()，元素一旦超出
+ * 视口，超出部分会被直接裁掉，因此这里的间距、字号普遍偏小，不是笔误。
+ * ============================================================ */
+
+/* ========== 全局基线 ========== */
+/* demo 是独立页面，没有外部样式表兜底，默认边距必须自己清掉，
+   否则 .app-container 会整体偏移，截图区域与视觉区域对不上 */
+html,
+body {
+  /* 清掉浏览器默认的外边距与内边距 */
+  margin: 0;
+  padding: 0;
+  min-height: 100%;
+}
+
+/* 字体栈按平台优先级排列：先系统 UI 字体，再回落到中文黑体系 */
+body {
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto,
+    'Helvetica Neue', Arial, 'PingFang SC', 'Hiragino Sans GB', 'Microsoft YaHei',
+    sans-serif;
+  /* 正文色 slate-800，与设计稿同一灰阶 */
+  color: #1e293b;
+  background: #fff;
+}
+
+/* ========== 布局骨架与框架标识 ========== */
+/* 页面根容器：纵向 flex，两个 .content-area 平分剩余高度 */
+.app-container {
+  /* 框架品牌色（React 青蓝） */
+  --brand: #149eca; /* 主品牌色：eyebrow 文字等直接取用 */
+  --brand-2: #087ea4; /* 深一档的品牌色，备用；现有渐变里仍直接写同色值 */
+  --brand-grad: linear-gradient(135deg, #149eca, #087ea4); /* 主按钮与图标块的渐变底 */
+  --brand-soft: rgba(20, 158, 202, 0.12); /* 12% 透明度，chip 底色 */
+  --brand-ring: rgba(20, 158, 202, 0.3); /* chip 描边，比底色略实 */
+  --brand-ink: #0b6f8e; /* chip 文字色，保证浅底上的对比度 */
+  --brand-shadow: rgba(20, 158, 202, 0.55); /* 彩色投影基色 */
+
+  /* 相对定位：给顶部 ::before 色条做定位参照 */
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  /* 区域间距 18px：拉开层次又不把内容顶出视口 */
+  gap: 18px;
+  /* border-box：min-height 含 padding，避免 100vh + padding 溢出出滚动条 */
+  box-sizing: border-box;
+  min-height: 100vh;
+  /* 顶部 24px 给 4px 色条留呼吸空间 */
+  padding: 24px 20px 20px;
+}
+
+/* 顶部框架主题色条：切换 demo 时一眼能看出区别 */
+.app-container::before {
+  content: '';
+  /* 绝对定位贴顶，不占文档流高度 */
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  /* 4px：与 docs/index.html 里 .accent-bar 的厚度一致 */
+  height: 4px;
+  background: linear-gradient(90deg, #149eca, #087ea4);
+}
+
+/* 框架标识胶囊（模板里跟在 <h2> 后面的 .fw-tag） */
+.fw-tag {
+  /* inline-block：让 padding / border-radius 在行内文本中生效 */
+  display: inline-block;
+  /* 与标题文字拉开 10px，同时不换行到独立一行 */
+  margin-left: 10px;
+  padding: 3px 11px;
+  border-radius: 999px;
+  background: linear-gradient(135deg, #149eca, #087ea4);
+  color: #fff;
+  /* 比主标题小一档，视觉上从属于标题 */
+  font-size: 13px;
+  font-weight: 600;
+  letter-spacing: 0.3px;
+  /* 以文字中线对齐，避免基线对齐产生的高低错位 */
+  vertical-align: middle;
+  box-shadow: 0 4px 12px -4px rgba(20, 158, 202, 0.9);
+}
+
+/* ========== 待标注区域 ========== */
+/* 待标注区域：flex 子项，与预览区按 1:1 分享剩余高度 */
+.content-area {
+  /* 相对定位：内部若有绝对定位元素，以它为参照 */
+  position: relative;
+  /* flex:1 1 0 → 上下两块等高；空间不足时允许收缩，由 min-height 兜底 */
+  flex: 1 1 0;
+  box-sizing: border-box;
+  /* 300px 下限：再矮画布几乎不可绘制，内容也会溢出 */
+  min-height: 300px;
+  padding: 20px 24px;
+  background: #f8fafc;
+  /* 虚线边框：暗示「这块是截图目标」 */
+  border: 2px dashed #e2e8f0;
+  border-radius: 12px;
+  /* 裁掉溢出内容，同时避免圆角处露出直角背景 */
+  overflow: hidden;
+}
+
+/* ---- Hero：仿框架官网首屏介绍 ---- */
+/* Hero：左文案 + 右图标，垂直居中 */
+.hero {
+  display: flex;
+  align-items: center;
+  /* 文案与图标间距 20px */
+  gap: 20px;
+  margin-bottom: 16px;
+}
+
+/* 文案容器：吃掉剩余宽度 */
+.hero-main {
+  flex: 1;
+  /* min-width:0 允许被压缩，否则长文本会把右侧图标挤出容器 */
+  min-width: 0;
+}
+
+/* eyebrow 小标题：全大写 + 大字距，模仿官网首屏引导语 */
+.hero-eyebrow {
+  margin: 0 0 4px;
+  font-size: 10.5px;
+  font-weight: 700;
+  letter-spacing: 1.6px;
+  text-transform: uppercase;
+  color: var(--brand);
+}
+
+/* 主标题：22px / 1.25，兼顾可读性与纵向占用 */
+.hero h2 {
+  margin: 0 0 6px;
+  font-size: 22px;
+  line-height: 1.25;
+}
+
+/* 简介段落：浅灰正文色 + 1.6 行高，小字号下更易读 */
+.hero-desc {
+  margin: 0;
+  /* 限制行长：超过 620px 换行，避免超宽屏一行拉得过长 */
+  max-width: 620px;
+  font-size: 12.5px;
+  line-height: 1.6;
+  color: #64748b;
+}
+
+/* 按钮行：两个按钮始终并排 */
+.hero-actions {
+  display: flex;
+  gap: 8px;
+  margin-top: 10px;
+  flex-wrap: nowrap;
+}
+
+/* 按钮公共样式：主/次按钮共享尺寸与交互反馈 */
+.btn-primary,
+.btn-ghost {
+  /* flex:0 0 auto + nowrap：打开工具条后宽度可能变化，禁止按钮被压缩后文字断行 */
+  flex: 0 0 auto;
+  padding: 6px 14px;
+  border-radius: 8px;
+  font-size: 12.5px;
+  font-weight: 600;
+  /* 继承 body 字体栈，避免 <button> 回落到浏览器默认字体 */
+  font-family: inherit;
+  white-space: nowrap;
+  cursor: pointer;
+  /* 只过渡位移与投影，避免颜色过渡带来的迟滞感 */
+  transition: transform 0.2s, box-shadow 0.2s;
+}
+
+/* 主按钮：品牌渐变底 + 彩色投影 */
+.btn-primary {
+  border: none;
+  color: #fff;
+  background: var(--brand-grad);
+  box-shadow: 0 6px 14px -6px var(--brand-shadow);
+}
+
+/* 次要按钮：白底 + 细描边，弱化存在感 */
+.btn-ghost {
+  border: 1px solid #cbd5e1;
+  background: #fff;
+  color: #475569;
+}
+
+/* 悬停只上移 1px，克制的反馈 */
+.btn-primary:hover,
+.btn-ghost:hover {
+  transform: translateY(-1px);
+}
+
+/* 右侧图标块：固定 64×64，不参与压缩 */
+.hero-logo {
+  /* grid + place-items 让单字母在块内水平垂直居中 */
+  display: grid;
+  place-items: center;
+  width: 64px;
+  height: 64px;
+  /* flex:none：窄容器下禁止被压扁 */
+  flex: none;
+  border-radius: 18px;
+  background: var(--brand-grad);
+  color: #fff;
+  font-size: 26px;
+  font-weight: 800;
+  box-shadow: 0 16px 30px -16px var(--brand-shadow);
+}
+
+/* ---- 特性卡片 ---- */
+/* 三列等宽网格：minmax(0,1fr) 防止长单词把列宽撑破 */
+.feature-grid {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 12px;
+}
+
+/* 单张卡片：白底 + 极浅投影，在灰底上形成层次 */
+.feature {
+  padding: 12px 14px;
+  background: #fff;
+  border: 1px solid #e2e8f0;
+  border-radius: 10px;
+  box-shadow: 0 2px 8px rgba(15, 23, 42, 0.04);
+}
+
+/* 卡片图标：emoji，行高 1 去掉 emoji 自带行距 */
+.feature-icon {
+  font-size: 15px;
+  line-height: 1;
+}
+
+/* 卡片标题 */
+.feature h3 {
+  margin: 5px 0 3px;
+  font-size: 13.5px;
+}
+
+/* 卡片正文：小字号 + 1.55 行高，控制在三行内不撑高卡片 */
+.feature p {
+  margin: 0;
+  font-size: 11.5px;
+  line-height: 1.55;
+  color: #64748b;
+}
+
+/* ---- 生态标签 ---- */
+/* 标签行：允许换行，窄屏时折到第二行而不是溢出 */
+.eco {
+  display: flex;
+  align-items: center;
+  gap: 7px;
+  margin-top: 14px;
+  flex-wrap: wrap;
+}
+
+/* 「生态」前缀：比右侧胶囊更浅，弱化存在感 */
+.eco-label {
+  font-size: 11px;
+  letter-spacing: 0.6px;
+  color: #94a3b8;
+}
+
+/* 生态胶囊：品牌浅底 + 描边，与实心的 .fw-tag 区分 */
+.chip {
+  padding: 3px 10px;
+  border: 1px solid var(--brand-ring);
+  border-radius: 999px;
+  background: var(--brand-soft);
+  color: var(--brand-ink);
+  font-size: 11.5px;
+  font-weight: 600;
+}
+
+/* ========== 预览区 ========== */
+/* 预览区复用 .content-area，仅改为纵向排布：标题在上、图片在下 */
+.preview-area {
+  display: flex;
+  flex-direction: column;
+}
+
+/* 与 Hero 主标题同字号，保持页面节奏 */
+.preview-area h2 {
+  margin: 0 0 8px;
+  font-size: 22px;
+}
+
+/* ========== 响应式收紧 ========== */
+/* 窗口较矮时收紧间距，保证内容完整落在标注区域内 */
+@media (max-height: 800px) {
+  /* 先缩内边距：收益最大且不影响字号可读性 */
+  .content-area {
+    padding: 14px 18px;
+  }
+  .hero {
+    margin-bottom: 10px;
+  }
+  /* 简介降一档字号并收紧行高，通常能省出一整行高度 */
+  .hero-desc {
+    font-size: 11.5px;
+    line-height: 1.5;
+  }
+  .hero-actions {
+    margin-top: 8px;
+  }
+  .feature {
+    padding: 10px 12px;
+  }
+  .feature p {
+    font-size: 11px;
+  }
+  .eco {
+    margin-top: 10px;
+  }
+}
+
+/* 预览图：等比缩放到容器宽度，圆角与卡片一致 */
+.preview-area img {
+  display: block;
+  max-width: 100%;
+  margin-top: 12px;
+  border-radius: 8px;
+}
+
+/* 空态提示：!important 用于压过外部可能继承来的段落样式 */
+.preview-empty {
+  margin-top: 12px !important;
+  color: #94a3b8 !important;
+  font-size: 14px;
+}
+
+/* ========== 入口按钮 ========== */
+/* 固定定位：不随内容滚动，始终可点 */
+.open-btn {
+  position: fixed;
+  /* 距视口右下各 32px */
+  bottom: 32px;
+  right: 32px;
+  /* 高于页面内容、低于覆盖层（覆盖层内部使用更高的层级） */
+  z-index: 100;
+  padding: 14px 28px;
+  background: linear-gradient(135deg, #149eca, #087ea4);
+  color: #fff;
+  border: none;
+  border-radius: 10px;
+  font-size: 16px;
+  cursor: pointer;
+  box-shadow: 0 6px 18px -6px rgba(20, 158, 202, 0.95);
+  transition: transform 0.2s, box-shadow 0.2s;
+}
+
+/* 悬停上移 2px 并加深投影，预告点击后的浮起感 */
+.open-btn:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 10px 24px -8px rgba(20, 158, 202, 1);
+}

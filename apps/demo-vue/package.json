@@ -5,11 +5,11 @@
   "type": "module",
   "scripts": {
     "dev": "vite",
-    "build": "vite build"
+    "build": "vite build",
+    "build:pages": "vite build --base=./"
   },
   "dependencies": {
     "vue": "^3.5.39",
-    "@laoliangfe/annotation-overlay-core": "workspace:*",
     "@laoliangfe/annotation-overlay-vue": "workspace:*"
   },
   "devDependencies": {

@@ -1,1 +1,0 @@
-export { domCapture } from './domCapture';

@@ -1,0 +1,80 @@
+{
+  "name": "@laoliangfe/annotation-overlay-angular",
+  "version": "2.0.0",
+  "description": "Angular 21 annotation overlay component (standalone + signals, zoneless friendly)",
+  "keywords": [
+    "annotation",
+    "annotate",
+    "screenshot",
+    "canvas",
+    "fabric",
+    "fabricjs",
+    "image-annotation",
+    "angular",
+    "standalone",
+    "signals"
+  ],
+  "homepage": "https://love2157dream.github.io/annotation-overlay/",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/love2157dream/annotation-overlay.git",
+    "directory": "packages/angular"
+  },
+  "bugs": {
+    "url": "https://github.com/love2157dream/annotation-overlay/issues"
+  },
+  "author": "love2157dream",
+  "license": "MIT",
+  "engines": {
+    "node": ">=18"
+  },
+  "type": "module",
+  "main": "dist/fesm2022/laoliangfe-annotation-overlay-angular.mjs",
+  "module": "dist/fesm2022/laoliangfe-annotation-overlay-angular.mjs",
+  "types": "dist/types/laoliangfe-annotation-overlay-angular.d.ts",
+  "exports": {
+    ".": {
+      "types": "./dist/types/laoliangfe-annotation-overlay-angular.d.ts",
+      "default": "./dist/fesm2022/laoliangfe-annotation-overlay-angular.mjs"
+    },
+    "./style.css": "./dist/style.css"
+  },
+  "files": [
+    "dist",
+    "README.md"
+  ],
+  "sideEffects": [
+    "**/*.css"
+  ],
+  "scripts": {
+    "prebuild": "node scripts/copy-style.mjs",
+    "build": "ng-packagr -c tsconfig.lib.json",
+    "postbuild": "node scripts/fix-dist-package.mjs && node ../../scripts/inline-angular-js.mjs && node ../../scripts/inline-internal-types.mjs --dist dist/types",
+    "watch": "node scripts/copy-style.mjs && ng-packagr -c tsconfig.lib.json --watch"
+  },
+  "peerDependencies": {
+    "@angular/common": "^21.0.0",
+    "@angular/core": "^21.0.0"
+  },
+  "dependencies": {
+    "@zumer/snapdom": "^2.16.0",
+    "fabric": "^7.4.0"
+  },
+  "devDependencies": {
+    "@angular/cli": "^21.2.24",
+    "@angular/common": "^21.2.24",
+    "@angular/compiler": "^21.2.24",
+    "@angular/compiler-cli": "^21.2.24",
+    "@angular/core": "^21.2.24",
+    "@angular/platform-browser": "^21.2.24",
+    "@laoliangfe/annotation-overlay-core": "workspace:*",
+    "@laoliangfe/annotation-overlay-ui": "workspace:*",
+    "ng-packagr": "^21.2.7",
+    "rxjs": "^7.8.0",
+    "tslib": "^2.8.0",
+    "typescript": "~5.9.3"
+  },
+  "publishConfig": {
+    "access": "public"
+  }
+}

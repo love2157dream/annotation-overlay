@@ -1,0 +1,284 @@
+/* ============================================================
+ * Annotation Overlay 结构样式（Flex 布局，纯 CSS3/HTML5）
+ *
+ * 负责范围：覆盖层的全屏定位、Fabric 画布容器、顶部工具栏组、
+ * 工具按钮、确认/取消按钮、样式面板的布局与配色。
+ * 类名统一前缀 anno-*，Vue / React / Angular 三端组件共用同一套类名，
+ * 因此这里只写「结构 + 视觉」，不写任何组件私有的尺寸逻辑。
+ *
+ * 约束：所有颜色/圆角/尺寸都走 tokens.css 的 CSS 变量，本文件不出现硬编码色值
+ * （唯一的例外是主按钮的白色文字，见 .anno-btn.primary）。改色请改变量。
+ * ============================================================ */
+
+/* ========== 覆盖层容器 ========== */
+/* 对应 AnnotationOverlay.vue 根节点：teleport 到 body 的全屏层。
+   position:fixed 而非 absolute，是为了不受页面滚动与祖先 transform 影响；
+   left/top/width/height 由组件按目标元素的 getBoundingClientRect 内联注入，
+   所以这里不写死 100vw/100vh。
+   overflow:hidden 用于裁掉超出目标元素范围的画布内容，保证截图边界干净。 */
+.anno-overlay {
+  position: fixed;
+  z-index: 9999;
+  overflow: hidden;
+}
+
+/* 画布外层：铺满覆盖层。组件通过内联 pointerEvents 控制是否穿透
+   （未选工具时 none，让点击落到下方页面；选中工具后 auto 才能画）。 */
+.anno-canvas-wrap {
+  position: absolute;
+  inset: 0;
+}
+
+/* Fabric 会在 canvas 上写死内联 width/height（按 devicePixelRatio 放大后的位图尺寸），
+   这里用 !important 强制撑满容器，避免 CSS 与内联样式打架导致画布错位；
+   位图放大比例由 fabric 的 enableRetinaScaling 负责，与这里的视觉尺寸互不影响。 */
+.anno-canvas-wrap canvas {
+  width: 100% !important;
+  height: 100% !important;
+}
+
+/* ========== 顶部工具栏组（可拖动） ========== */
+/* 对应模板里的 .anno-topbar-group：Toolbar 与 StylePanel 的共同父级。
+   它既是拖动的最小单元，也是样式面板的定位基准。
+
+   position: relative 是刻意保留的：样式面板 left/top 相对本组计算，
+   若去掉会以 .anno-overlay 为基准，导致面板跑到工具栏左侧重叠。
+   注意：拖动后组件会把它改成 position:fixed（见 toolbarGroupStyle），
+   届时面板定位仍以本组为参照，但 offsetParent 会变化，
+   所以面板坐标必须用 getBoundingClientRect 差值算，不能用 offsetLeft。 */
+.anno-topbar-group {
+  /* 作为样式面板的定位基准：面板 left/top 都是相对本组计算，
+     否则面板会以 .anno-overlay 为基准、跑到工具栏左边造成重叠 */
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 8px;
+  z-index: 3;
+  max-width: calc(100% - 16px);
+  /* 覆盖层内部区域默认可点击；配合 .anno-overlay 的定位避免事件被画布吞掉 */
+  pointer-events: auto;
+  cursor: grab;
+  user-select: none;
+  -webkit-user-select: none;
+}
+
+/* 按住拖动时切换抓手光标，给出「正在拖」的即时反馈 */
+.anno-topbar-group:active {
+  cursor: grabbing;
+}
+
+/* ========== 工具栏 ========== */
+/* 对应 Toolbar.vue 根节点：一条横向胶囊条，内含手柄/工具按钮/撤销重做/确认取消。
+   cursor:default 覆盖父级的 grab，避免鼠标划过按钮时误以为整条都在拖拽。 */
+.anno-toolbar {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  padding: 6px 10px;
+  background: var(--anno-bg);
+  border-radius: var(--anno-radius-panel);
+  box-shadow: var(--anno-shadow);
+  cursor: default;
+}
+
+/* 对应 Toolbar.vue 里的拖动手柄（九点阵图标），是唯一显式声明可拖的抓手。
+   固定 24×34，高度与按钮行对齐；flex-shrink:0 防止窄屏被压缩变形。 */
+.anno-drag-handle {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 24px;
+  height: 34px;
+  cursor: grab;
+  color: var(--anno-icon);
+  transition: color 0.2s;
+  flex-shrink: 0;
+}
+
+/* 悬停变深，提示手柄可交互；颜色取自 --anno-icon-hover */
+.anno-drag-handle:hover {
+  color: var(--anno-icon-hover);
+}
+
+/* 拖拽过程中保持抓手闭合态，与父级 :active 规则保持一致 */
+.anno-drag-handle:active {
+  cursor: grabbing;
+}
+
+/* 手柄内的 svg 是 inline 元素，去掉基线间隙以免撑高手柄高度 */
+.anno-drag-handle svg {
+  display: block;
+}
+
+/* 工具分组之间的竖向分隔线：1px 宽、高度取变量
+   flex-shrink:0 保证窄屏时不会被压成 0 宽而消失 */
+.anno-sep {
+  width: 1px;
+  height: var(--anno-sep-height);
+  background: var(--anno-divider);
+  margin: 0 4px;
+  flex-shrink: 0;
+}
+
+/* ========== 工具按钮 ========== */
+/* 对应 Toolbar.vue 中的工具按钮与撤销/重做按钮（正方形 34×34）。
+   使用 button 元素而非 div，天然可获得键盘焦点与 disabled 语义。 */
+.anno-tool-btn {
+  width: var(--anno-tool-btn-size);
+  height: var(--anno-tool-btn-size);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border: none;
+  background: transparent;
+  border-radius: var(--anno-radius-btn);
+  color: var(--anno-text);
+  cursor: pointer;
+  padding: 0;
+}
+
+/* 图标尺寸与按钮解耦：图标 18px、按钮 34px，留出的 8px 是点击热区余量 */
+.anno-tool-btn svg {
+  display: block;
+  width: var(--anno-icon-size);
+  height: var(--anno-icon-size);
+  flex-shrink: 0;
+}
+
+/* 悬停态：仅换浅灰底，不改变图标颜色，避免与 active 态混淆 */
+.anno-tool-btn:hover {
+  background: var(--anno-hover-bg);
+}
+
+/* 当前工具高亮：浅主色底 + 主色图标，靠背景与颜色双重标识，
+   保证色弱用户也能通过明度差区分选中项 */
+.anno-tool-btn.active {
+  background: var(--anno-primary-weak);
+  color: var(--anno-primary);
+}
+
+/* 撤销/重做在无可撤销步骤时 disabled。
+   只降透明度而不改布局，防止按钮点击区尺寸跳动。 */
+.anno-tool-btn:disabled {
+  opacity: 0.4;
+  cursor: not-allowed;
+}
+
+/* ========== 确认 / 取消按钮 ========== */
+/* 对应 Toolbar.vue 右侧的「取消」「确认」两个按钮（.primary 为确认）。
+   line-height 与 padding 配合将文字压在 14px 行高内，保证两个按钮等高。 */
+.anno-btn {
+  width: var(--anno-btn-width);
+  height: var(--anno-btn-height);
+  line-height: 14px;
+  padding: 6px 14px;
+  border-radius: var(--anno-radius-btn);
+  border: 1px solid var(--anno-border);
+  background: var(--anno-bg);
+  cursor: pointer;
+  font-size: 14px;
+  color: var(--anno-text-strong);
+}
+
+/* 确认按钮：主色实底 + 白字。
+   这里是全文件唯一的硬编码颜色（#fff），因为主色是可换的，
+   而「主色底上的文字」始终应为白色，不随主题变化。 */
+.anno-btn.primary {
+  background: var(--anno-primary);
+  border-color: var(--anno-primary);
+  color: #fff;
+}
+
+/* ========== 样式面板 ========== */
+/* 对应 StylePanel.vue 根节点：悬浮在工具栏下方的小面板。
+   position:absolute 相对 .anno-topbar-group 定位，left/top 由组件按
+   「按钮矩形 − 工具组矩形」的差值实时算出，因此这里不写死坐标。
+
+   cursor:default 用于覆盖父级（可拖动工具组）的 grab 光标，
+   否则在面板上拖滑块时鼠标形状会误导用户以为可以拖动整条工具栏。 */
+.anno-style-panel {
+  position: absolute;
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 8px;
+  padding: 10px;
+  background: var(--anno-bg);
+  border-radius: var(--anno-radius-panel);
+  box-shadow: var(--anno-shadow);
+  font-size: 13px;
+  color: var(--anno-text-muted);
+  min-width: 140px;
+  cursor: default;
+}
+
+/* 面板内的每一行（粗细 + 数值 / 颜色 + 色块），整行撑满以便滑块占满剩余宽度 */
+.anno-style-row {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  width: 100%;
+}
+
+/* 滑块占据行内剩余空间；min-width 防止面板被压窄后滑块缩到无法操作 */
+.anno-style-row input[type='range'] {
+  flex: 1;
+  min-width: 80px;
+  cursor: pointer;
+}
+
+/* 滑块右侧的数值文本（如 "4px"）。min-width + 右对齐，
+   避免数值从 9 变 10 时文本宽度变化导致滑块抖动 */
+.anno-value {
+  min-width: 32px;
+  text-align: right;
+  font-size: 12px;
+  color: var(--anno-text-muted);
+}
+
+/* 预设色块与自定义取色器的横向排列容器 */
+.anno-color-list {
+  display: flex;
+  gap: 6px;
+}
+
+/* 行首的字段名标签（粗细 / 大小 / 颜色）。
+   min-width 固定占位，保证上下两行的滑块与色块左边缘对齐 */
+.anno-label {
+  color: var(--anno-text-muted);
+  font-size: 12px;
+  min-width: 28px;
+}
+
+/* 单个预设色块：圆形、2px 描边。
+   描边用 --anno-border 而非白色，保证白色色块在白色面板上仍可见 */
+.anno-swatch {
+  width: var(--anno-swatch-size);
+  height: var(--anno-swatch-size);
+  border-radius: 50%;
+  border: 2px solid var(--anno-border);
+  cursor: pointer;
+  flex-shrink: 0;
+}
+
+/* 当前选中色块：描边换成主色作为选中标识，不改尺寸以免布局跳动 */
+.anno-swatch.active {
+  border-color: var(--anno-primary);
+}
+
+/* 自定义取色器：原生 input[type=color] 直接展示当前色，
+   宽高与色块行对齐（高度复用 --anno-swatch-size），overflow:hidden 裁掉圆角外的溢出 */
+.anno-color-picker {
+  width: 24px;
+  height: var(--anno-swatch-size);
+  border: 2px solid var(--anno-border);
+  cursor: pointer;
+  overflow: hidden;
+}
+
+/* WebKit 下原生取色器自带内边距，会让色块看起来比预设色块小一圈，
+   这里清零以对齐视觉尺寸；!important 用于覆盖 UA 默认样式权重 */
+input[type='color']::-webkit-color-swatch-wrapper {
+  padding: 0 !important;
+}

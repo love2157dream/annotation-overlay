@@ -1,8 +1,22 @@
+# pnpm 工作区定义
+#
+# 两个包集合：
+# - packages/*  ：可发布的库（core 引擎、ui 静态资源、vue/react/angular 三端适配）
+# - apps/*      ：本地演示应用，不发布，通过 workspace 依赖引用上面的包
+#
+# 包间依赖一律写 "workspace:*"，pnpm 会链接到本地目录；
+# 因此改了 packages/ 需要重新构建，turbo 的 dev/build 已用 dependsOn: ["^build"] 保证顺序。
 packages:
   - 'packages/*'
   - 'apps/*'
 
 # 允许执行原生构建脚本的包 (解决 esbuild/canvas 报错)
+#
+# pnpm 默认阻止依赖执行 postinstall 等脚本，以下包需要下载/编译原生二进制，
+# 不放行会导致 vite（esbuild）或 fabric 的 canvas 依赖报错。
 allowBuilds:
+  '@parcel/watcher': true
   canvas: true
   esbuild: true
+  lmdb: true
+  msgpackr-extract: true
