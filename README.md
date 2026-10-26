@@ -62,8 +62,12 @@ pnpm docs:preview   # 本地预览 docs/ 站点（等价于 pnpm run docs）
 pnpm docs:build     # 重新构建三个 demo 产物 → 写入 docs/ → 打开预览
 pnpm version:set    # 统一修改三个框架包的版本号（patch / minor / major / x.y.z）
 pnpm release:dry    # 发布前干跑：构建 + 打包，不推送
-pnpm release        # 构建并发布 3 个包到 npm（详见 RELEASE.md）
+pnpm release        # 构建并发布 3 个包到 npm（发版流程见 RELEASING.md）
 ```
+
+> 📘 **改完代码要发版**：照着 [RELEASING.md](./RELEASING.md) 一步步做（升版本号 → 写 CHANGELOG →
+> 重建 docs → 提交打 tag → 推 tag 由 CI 发布 → 发布后校验）。
+> 一次性配置（NPM_TOKEN、Pages、老包冻结）在 [RELEASE.md](./RELEASE.md)。
 
 > ⚠️ `pnpm docs` 是 pnpm 的内置命令（打开 npm 包文档页），会被 pnpm 自身拦截，
 > 因此本地预览请用 **`pnpm docs:preview`** 或 **`pnpm run docs`**。

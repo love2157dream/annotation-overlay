@@ -1,4 +1,8 @@
-# 发布手册
+# 发布手册（一次性配置与背景）
+
+> **日常改完代码要发版，请直接看 [RELEASING.md](./RELEASING.md)** —— 那份是逐步操作单，照着敲即可。
+> 本文只保留「一次性」的内容：仓库整合历史、NPM_TOKEN / Pages 配置、老包冻结、版本策略背景。
+> 已经配好的环境，正常发版用不到这里。
 
 面向维护者的发版流程：仓库整合 → 版本号 → npm 发布 → GitHub Pages。
 日常开发看 [README](./README.md)，这里只讲「怎么把东西发出去」。
@@ -128,22 +132,20 @@ npm deprecate @laoliangfe/annotation-overlay@"<=1.1.7" \
 
 ## 5. 后续发版
 
-```bash
-pnpm version:set patch        # 或 minor / major / 2.0.1，三个框架包一起改（core / ui 同步跟号）
-# 编辑 CHANGELOG.md，写清 Added / Fixed / Breaking
-pnpm build && pnpm release:dry
-git add -A && git commit -m "chore(release): v1.0.1"
-git tag v1.0.1
-git push origin main --tags   # 推 tag 后由 .github/workflows/release.yml 自动发布
-```
+日常操作（改代码 → 升版本 → 提交 → 推 tag → 校验 npm → 更新站点）见 **[RELEASING.md](./RELEASING.md)**，这里只记三条容易踩的规则：
 
-自动发布需要一次性配置：
+1. 版本号一律用 `pnpm version:set patch|minor|major`（一次改 5 个 package.json），**不要手改**，也**不要忘记改** —— 忘记改时 CI 会因「版本已存在」把三个包全部跳过，流水线仍然显示成功。
+2. tag 名必须是 `v` + 版本号，且与 `packages/core/package.json` 的 `version` 完全一致，否则 CI 的校验步骤直接失败。
+3. 发布分支是 **`master`**，对外远端是 **`github`**；`origin` 指向 codeup，仅作备份。
 
-1. npm 网站 → Access Tokens → 生成 **Granular Access Token**，权限含 `Read and write`，Scope 选择 `@laoliangfe`
+自动发布依赖的一次性配置：
+
+1. npm 网站 → Access Tokens → 生成 **Granular Access Token**，`Packages and scopes` 选 `Read and write (publish and stage)`，Scope 选 `@laoliangfe`，并勾选 **Bypass two-factor authentication**
 2. GitHub 仓库 → Settings → Secrets and variables → Actions → 新建 `NPM_TOKEN`，粘贴 token
-3. 之后 `git push origin v1.0.1` 即可，workflow 会校验 tag 与 `package.json` 版本一致后逐个发布并建 Release
+3. 之后推 tag 即可，workflow 会校验版本、逐个包查 registry（已存在则跳过）后发布，并创建 GitHub Release
 
-也可以跳过 CI，本地直接 `pnpm release`。
+> token 有效期到了会表现为「发布步骤返回 404」（npm 对无权限的写入统一返回 404 而不是 401）。
+> 重新生成后要**同时**更新 GitHub secret 和本机 `~/.npmrc`，否则 CI 与本地会一个能用一个不能用。
 
 ## 6. 回滚
 
